@@ -2,11 +2,14 @@
 <html>
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title></title>
+        <script src="js/lib.js" type="text/javascript"></script>
+        <style src="css/lib.css" type="text/css"></style>
+        <title>R&eacute;sultats de tournois</title>
     </head>
     <body>
+        <div class="titre">R&eacute;sultats de tournois</div>
         <?php
-        // put your code here
+            echo ""
         ?>
     </body>
 </html>

@@ -1,0 +1,20 @@
+/* 
+    Document   : lib
+    Created on : 29 juin 2010, 13:59:54
+    Author     : Frederic Berger
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+root { 
+    display: block;
+}
+
+.titre{
+    text-align: center;
+}
