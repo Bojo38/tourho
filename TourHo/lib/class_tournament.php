@@ -33,6 +33,23 @@ class tournament {
         mysql_close($link);
     }
 
+    public function getRounds()
+    {
+       $list=array();
+       global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
+
+       $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
+       mysql_select_db($db_name,$link);      
+       $query="SELECT rid FROM ".$db_prefix."round WHERE f_tid=$this->tid ORDER BY date";
+       $result=mysql_query($query);
+       $index=0;
+       while ($r = mysql_fetch_row($result)) {
+           $list[$index++]=new round($r[0]);
+        }
+        mysql_close($link);
+        return $list;
+    }
+
     public static function add($name,$orgas,$date,$place,
         $large_victory,$_victory,$draw,$little_lost,$lost,
         $rank1,$rank2,$rank3,$rank4,$rank5,
@@ -48,6 +65,40 @@ class tournament {
        $id=mysql_insert_id ($link);
         mysql_close($link);
         return $id;
+    }
+
+    public static function getYearList()
+    {
+        global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
+        $list=array();
+       $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
+        mysql_select_db($db_name,$link);
+
+       $query="SELECT DATE_FORMAT(date,'%Y') from ".$db_prefix."tournament";
+       $result=mysql_query($query);
+       
+       while($row=mysql_fetch_array($result)) {
+            $list[$row[0]]=$row[0];
+        }
+        mysql_close($link);
+        return $list;
+    }
+
+    public static function getToursByYear($year)
+    {
+        global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
+        $list=array();
+       $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
+        mysql_select_db($db_name,$link);
+
+       $query="SELECT name,tid from ".$db_prefix."tournament WHERE DATE_FORMAT(date,'%Y')=$year";
+       $result=mysql_query($query);
+
+       while($row=mysql_fetch_array($result)) {
+            $list[$row[0]]=$row[1];
+        }
+        mysql_close($link);
+        return $list;
     }
 }
 ?>
