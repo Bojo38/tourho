@@ -81,14 +81,12 @@ function match_display($round_id) {
 </table>";
 }
 
-function rank_display($tid,$rid,$rank_type) {
+function general_display($tid,$rid) {
     $tour=new tournament($tid);
 
-    if ($rid==-1)
-    {
+    if ($rid==-1) {
         $rounds=$tour->getRounds();
-        foreach ($rounds as $round)
-        {
+        foreach ($rounds as $round) {
             $rid=max($rid,$round->rid);
         }
     }
@@ -101,66 +99,123 @@ function rank_display($tid,$rid,$rank_type) {
     mysql_select_db($db_name,$link);
 
     $list =array();
-    $sort_list=array();
+    $sort_list1=array();
+    $sort_list2=array();
+    $sort_list3=array();
+    $sort_list4=array();
+    $sort_list5=array();
 
-    switch($rank_type)
-    {
-        case tournament::C_TD_POS:
-            $s1='td1';
-            $s2='td2';
-            $ranking_name="Touchdown marqués";
-            break;
-        case tournament::C_TD_NEG:
-            $s1='td2';
-            $s2='td1';
-            $ranking_name="Touchdown encaissés";
-            break;
-        case tournament::C_CAS_POS:
-            $s1='cas1';
-            $s2='cas2';
-            $ranking_name="Sorties réalisées";
-            break;
-        case tournament::C_CAS_NEG:
-            $s1='cas2';
-            $s2='cas1';
-            $ranking_name="Sorties subies";
-            break;
-        case tournament::C_FOUL_POS:
-            $s1='foul1';
-            $s2='foul2';
-            $ranking_name="Agrressions réussies";
-            break;
-        case tournament::C_FOUL_NEG:
-            $s1='foul2';
-            $s2='foul1';
-            $ranking_name="Agressions subies";
-            break;
-    }
+    $ranking_name1=$tour->getRankingName($tour->rank1);
+    $ranking_name2=$tour->getRankingName($tour->rank2);
+    $ranking_name3=$tour->getRankingName($tour->rank3);
+    $ranking_name4=$tour->getRankingName($tour->rank4);
+    $ranking_name5=$tour->getRankingName($tour->rank5);
 
     foreach ($coachs as $coach) {
-
-        $query="SELECT SUM( value ) FROM (
-                    (
-                        (SELECT tourho_match.".$s1." AS value FROM tourho_match WHERE $coach->cid = tourho_match.f_cid1 and tourho_match.f_rid<=$rid)
-                        UNION
-                        (SELECT tourho_match.".$s2." AS value FROM tourho_match WHERE $coach->cid = tourho_match.f_cid2 and tourho_match.f_rid<=$rid)
-                    ) AS liste) ";
         $element =array();
         $element['Coach']=$coach->name;
         $element['Team']=$coach->team;
         $element['Race']=$coach->race;
-        $result=mysql_query($query);
-        $index=0;
-        while ($r = mysql_fetch_row($result)) {
-            $element['Value']=($r[0]);
 
+        $element['Value1']=$tour->getRankingValue($coach->cid,$rid,$tour->rank1);
+        $element['Value2']=$tour->getRankingValue($coach->cid,$rid,$tour->rank2);
+        $element['Value3']=$tour->getRankingValue($coach->cid,$rid,$tour->rank3);
+        $element['Value4']=$tour->getRankingValue($coach->cid,$rid,$tour->rank4);
+        $element['Value5']=$tour->getRankingValue($coach->cid,$rid,$tour->rank5);
+        
+        array_push($list, $element);
+        array_push($sort_list1,$element['Value1']);
+        array_push($sort_list2,$element['Value2']);
+        array_push($sort_list3,$element['Value3']);
+        array_push($sort_list4,$element['Value4']);
+        array_push($sort_list5,$element['Value5']);
+    }
+
+
+
+    array_multisort($sort_list1, SORT_DESC,$sort_list2, SORT_DESC,$sort_list3, SORT_DESC,$sort_list4, SORT_DESC,$sort_list5, SORT_DESC,$list);
+    $counter=1;
+    echo "<table
+ style=\"border-color: black; width: 100%; text-align: left; margin-left: auto; margin-right: auto;text-align:center;\"
+ border=\"1\" cellpadding=\"0\" cellspacing=\"0\">
+  <tbody>
+    <tr>
+    <td>N°</td>
+      <td>Coach</td>
+      <td>Equipe</td>
+      <td>Roster</td>
+      <td>".$ranking_name1."</td>
+        <td>".$ranking_name2."</td>
+        <td>".$ranking_name3."</td>
+        <td>".$ranking_name4."</td>
+        <td>".$ranking_name5."</td>
+    </tr>";
+    foreach ($list as $element) {
+        print "<td>".$counter++."</td>";
+        print "<td>".$element['Coach']."</td>";
+        print "<td>".$element['Team']."</td>";
+        print "<td>".$element['Race']."</td>";
+        print "<td>".$element['Value1']."</td>";
+        print "<td>".$element['Value2']."</td>";
+        print "<td>".$element['Value3']."</td>";
+        print "<td>".$element['Value4']."</td>";
+        print "<td>".$element['Value5']."</td>";
+        print "</tr>";
+    }
+    print "</tbody>
+</table>";
+}
+
+
+function rank_display($tid,$rid,$rank_type) {
+    $tour=new tournament($tid);
+
+    if ($rid==-1) {
+        $rounds=$tour->getRounds();
+        foreach ($rounds as $round) {
+            $rid=max($rid,$round->rid);
         }
+    }
+    $round=new round($rid);
+
+    $coachs=$tour->getCoachs();
+
+    $list =array();
+    $sort_list=array();
+
+    foreach ($coachs as $coach) {
+
+        $element =array();
+        $element['Coach']=$coach->name;
+        $element['Team']=$coach->team;
+        $element['Race']=$coach->race;
+        $element['Value']=$tour->getValueByCoach($coach->cid, $rid, $rank_type);
         array_push($list, $element);
         array_push($sort_list,$element['Value']);
     }
-    mysql_close($link);
 
-array_multisort($sort_list, SORT_DESC,$list);
+    switch($rank_type) {
+        case tournament::C_TD_POS:
+            $ranking_name="Touchdown marqués";
+            break;
+        case tournament::C_TD_NEG:
+            $ranking_name="Touchdown encaissés";
+            break;
+        case tournament::C_CAS_POS:
+            $ranking_name="Sorties réalisées";
+            break;
+        case tournament::C_CAS_NEG:
+            $ranking_name="Sorties subies";
+            break;
+        case tournament::C_FOUL_POS:
+            $ranking_name="Agrressions réussies";
+            break;
+        case tournament::C_FOUL_NEG:
+            $ranking_name="Agressions subies";
+            break;
+    }
+
+    array_multisort($sort_list, SORT_DESC,$list);
     $counter=1;
     echo "<table
  style=\"border-color: black; width: 100%; text-align: left; margin-left: auto; margin-right: auto;text-align:center;\"
