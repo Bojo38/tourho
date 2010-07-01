@@ -12,6 +12,13 @@
  */
 class tournament {
 
+    const C_TD_POS = 1;
+    const C_TD_NEG = 2;
+    const C_CAS_POS = 3;
+    const C_CAS_NEG = 4;
+    const C_FOUL_POS = 5;
+    const C_FOUL_NEG = 6;
+
     public $tid=0;
 
     function __construct($id)
@@ -46,7 +53,24 @@ class tournament {
        while ($r = mysql_fetch_row($result)) {
            $list[$index++]=new round($r[0]);
         }
-        mysql_close($link);
+        //mysql_close($link);
+        return $list;
+    }
+
+    public function getCoachs()
+    {
+       $list=array();
+       global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
+
+       $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
+       mysql_select_db($db_name,$link);
+       $query="SELECT cid FROM ".$db_prefix."coach WHERE f_tid=$this->tid";
+       $result=mysql_query($query);
+       $index=0;
+       while ($r = mysql_fetch_row($result)) {
+           $list[$index++]=new coach($r[0]);
+        }
+        //mysql_close($link);
         return $list;
     }
 

@@ -53,13 +53,12 @@ class round {
        $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
        mysql_select_db($db_name,$link);
        $query="SELECT mid FROM ".$db_prefix."match WHERE f_rid=$this->rid";
-       echo $query;
        $result=mysql_query($query);
        $index=0;
        while ($r = mysql_fetch_row($result)) {
            $list[$index++]=new match($r[0]);
         }
-        mysql_close($link);
+        //mysql_close($link);
         return $list;
     }
 }

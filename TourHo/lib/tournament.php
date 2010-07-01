@@ -3,6 +3,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
+
+
+
 function generate_tour_menu($tour_id) {
     $tour=new tournament($tour_id);
     $rounds=$tour->getRounds();
@@ -76,7 +79,110 @@ function match_display($round_id) {
     }
     print "</tbody>
 </table>";
+}
 
+function rank_display($tid,$rid,$rank_type) {
+    $tour=new tournament($tid);
+
+    if ($rid==-1)
+    {
+        $rounds=$tour->getRounds();
+        foreach ($rounds as $round)
+        {
+            $rid=max($rid,$round->rid);
+        }
+    }
+    $round=new round($rid);
+
+    $coachs=$tour->getCoachs();
+    global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
+
+    $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
+    mysql_select_db($db_name,$link);
+
+    $list =array();
+    $sort_list=array();
+
+    switch($rank_type)
+    {
+        case tournament::C_TD_POS:
+            $s1='td1';
+            $s2='td2';
+            $ranking_name="Touchdown marqués";
+            break;
+        case tournament::C_TD_NEG:
+            $s1='td2';
+            $s2='td1';
+            $ranking_name="Touchdown encaissés";
+            break;
+        case tournament::C_CAS_POS:
+            $s1='cas1';
+            $s2='cas2';
+            $ranking_name="Sorties réalisées";
+            break;
+        case tournament::C_CAS_NEG:
+            $s1='cas2';
+            $s2='cas1';
+            $ranking_name="Sorties subies";
+            break;
+        case tournament::C_FOUL_POS:
+            $s1='foul1';
+            $s2='foul2';
+            $ranking_name="Agrressions réussies";
+            break;
+        case tournament::C_FOUL_NEG:
+            $s1='foul2';
+            $s2='foul1';
+            $ranking_name="Agressions subies";
+            break;
+    }
+
+    foreach ($coachs as $coach) {
+
+        $query="SELECT SUM( value ) FROM (
+                    (
+                        (SELECT tourho_match.".$s1." AS value FROM tourho_match WHERE $coach->cid = tourho_match.f_cid1 and tourho_match.f_rid<=$rid)
+                        UNION
+                        (SELECT tourho_match.".$s2." AS value FROM tourho_match WHERE $coach->cid = tourho_match.f_cid2 and tourho_match.f_rid<=$rid)
+                    ) AS liste) ";
+        $element =array();
+        $element['Coach']=$coach->name;
+        $element['Team']=$coach->team;
+        $element['Race']=$coach->race;
+        $result=mysql_query($query);
+        $index=0;
+        while ($r = mysql_fetch_row($result)) {
+            $element['Value']=($r[0]);
+
+        }
+        array_push($list, $element);
+        array_push($sort_list,$element['Value']);
+    }
+    mysql_close($link);
+
+array_multisort($sort_list, SORT_DESC,$list);
+    $counter=1;
+    echo "<table
+ style=\"border-color: black; width: 100%; text-align: left; margin-left: auto; margin-right: auto;text-align:center;\"
+ border=\"1\" cellpadding=\"0\" cellspacing=\"0\">
+  <tbody>
+    <tr>
+    <td>N°</td>
+      <td>Coach</td>
+      <td>Equipe</td>
+      <td>Roster</td>
+      <td>".$ranking_name."</td>
+    </tr>";
+    foreach ($list as $element) {
+        print "<td>".$counter++."</td>";
+        print "<td>".$element['Coach']."</td>";
+        print "<td>".$element['Team']."</td>";
+        print "<td>".$element['Race']."</td>";
+        print "<td>".$element['Value']."</td>";
+        print "</tr>";
+    }
+    print "</tbody>
+</table>";
 }
 
 function tournament_html($tour_id) {
@@ -86,61 +192,32 @@ function tournament_html($tour_id) {
     $tour=new tournament($tour_id);
     $rounds=$tour->getRounds();
 
+    $r=-1;
+    if (isset($_GET['round'])) {
+        $r=$_GET['round'];
+    }
+
     if ($_GET['rank'] == 'general') {
-        if (isset($_GET['round'])) {
-            general_display($tour_id,count($rounds));
-        }
-        else {
-            general_display($tour_id,$_GET['round']);
-        }
+        general_display($tour_id,$r);
     }
     if ($_GET['rank'] == 'td_pos') {
-        if (isset($_GET['round'])) {
-            td_pos_display($tour_id,count($rounds));
-        }
-        else {
-            td_pos_display($tour_id,$_GET['round']);
-        }
+        rank_display($tour_id,$r,tournament::C_TD_POS);
     }
     if ($_GET['rank'] == 'td_neg') {
-        if (isset($_GET['round'])) {
-            td_neg_display($tour_id,count($rounds));
-        }
-        else {
-            td_neg_display($tour_id,$_GET['round']);
-        }
+        rank_display($tour_id,$r,tournament::C_TD_NEG);
+
     }
     if ($_GET['rank'] == 'cas_pos') {
-        if (isset($_GET['round'])) {
-            cas_pos_display($tour_id,count($rounds));
-        }
-        else {
-            cas_pos_display($tour_id,$_GET['round']);
-        }
+        rank_display($tour_id,$r,tournament::C_CAS_POS);
     }
     if ($_GET['rank'] == 'cas_neg') {
-        if (isset($_GET['round'])) {
-            cas_neg_display($tour_id,count($rounds));
-        }
-        else {
-            cas_neg_display($tour_id,$_GET['round']);
-        }
+        rank_display($tour_id,$r,tournament::C_CAS_NEG);
     }
     if ($_GET['rank'] == 'foul_pos') {
-        if (isset($_GET['round'])) {
-            foul_pos_display($tour_id,count($rounds));
-        }
-        else {
-            foul_pos_display($tour_id,$_GET['round']);
-        }
+        rank_display($tour_id,$r,tournament::C_FOUL_POS);
     }
     if ($_GET['rank'] == 'foul_neg') {
-        if (isset($_GET['round'])) {
-            foul_neg_display($tour_id,count($rounds));
-        }
-        else {
-            foul_neg_display($tour_id,$_GET['round']);
-        }
+        rank_display($tour_id,$r,tournament::C_FOUL_NEG);
     }
 
     if ($_GET['rank'] == 'matchs') {
