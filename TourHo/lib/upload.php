@@ -232,5 +232,11 @@ function upload_file($filename) {
         xml_parser_free($xml_parser);
     }
 
+    echo "<br><br>";
+
+    echo "<form enctype='multipart/form-data' action='index.php' method='POST'>
+                    <input type='submit' value='Retour' />
+                </form>";
+
 }
 ?>

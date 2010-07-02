@@ -26,15 +26,29 @@ function generate_tour_menu($tour_id) {
     foreach ($rounds as $round) {
         print "<li><span class=\"dir\">Ronde $round->number</span>";
         print "<ul>
-                    <li><a href=\"index.php?tournament=$tour_id&amp;rank=matchs&amp;round=$round->rid\">Matchs</a></li>
-                    <li><a href=\"index.php?tournament=$tour_id&amp;rank=rank&amp;round=$round->rid\">Classement de la ronde</a></li>
-                    <li><a href=\"index.php?tournament=$tour_id&amp;rank=general&amp;round=$round->rid\">Classement General</a></li>
-                    <li><a href=\"index.php?tournament=$tour_id&amp;rank=td_pos&amp;round=$round->rid\">Touchdowns marqués</a></li>
-                    <li><a href=\"index.php?tournament=$tour_id&amp;rank=td_neg&amp;round=$round->rid\">Touchdowns encaissés</a></li>
-                    <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_pos&amp;round=$round->rid\">Sorties réalisées</a></li>
-                    <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_neg&amp;round=$round->rid\">Sorties subies</a></li>
-                    <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_pos&amp;round=$round->rid\">Agressions réussies</a></li>
-                    <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_neg&amp;round=$round->rid\">Agressions subies</a></li>
+                    <li><a href=\"index.php?tournament=$tour_id&amp;rank=matchs&amp;round=$round->rid\">Matchs</a></li>                    
+                    <li><span class=\"dir\">Classements sur la ronde</span>
+                        <ul>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=general&amp;round=$round->rid\">Classement General</a></li>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=td_pos&amp;round=$round->rid\">Touchdowns marqués</a></li>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=td_neg&amp;round=$round->rid\">Touchdowns encaissés</a></li>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_pos&amp;round=$round->rid\">Sorties réalisées</a></li>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_neg&amp;round=$round->rid\">Sorties subies</a></li>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_pos&amp;round=$round->rid\">Agressions réussies</a></li>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_neg&amp;round=$round->rid\">Agressions subies</a></li>
+                        </ul>
+                    </li>
+                    <li><span class=\"dir\">Classements à ronde</span>
+                        <ul>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=general&amp;round=$round->rid&amp;total=1\">Classement General</a></li>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=td_pos&amp;round=$round->rid&amp;total=1\">Touchdowns marqués</a></li>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=td_neg&amp;round=$round->rid&amp;total=1\">Touchdowns encaissés</a></li>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_pos&amp;round=$round->rid&amp;total=1\">Sorties réalisées</a></li>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_neg&amp;round=$round->rid&amp;total=1\">Sorties subies</a></li>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_pos&amp;round=$round->rid&amp;total=1\">Agressions réussies</a></li>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_neg&amp;round=$round->rid&amp;total=1\">Agressions subies</a></li>
+                        </ul>
+                    </li>
                 </ul></li>";
     }
     echo "</ul>
@@ -85,12 +99,30 @@ function match_display($round_id) {
 function general_display($tid,$rid,$round_max) {
     $tour=new tournament($tid);
 
+    $rounds=$tour->getRounds();
     if ($rid==-1) {
-        $rounds=$tour->getRounds();
+
         foreach ($rounds as $round) {
             $rid=max($rid,$round->rid);
         }
+        $text="classement final";
     }
+    else {
+        $count=1;
+        foreach ($rounds as $round) {
+            if ($rid==$round->rid) {
+                if ($round_max==round::C_UNIQUE) {
+                    $text="classement sur la ronde $count";
+                }
+                else {
+                    $text="classement à la ronde $count";
+                }
+                break;
+            }
+            $count++;
+        }
+    }
+
     $round=new round($rid);
 
     $coachs=$tour->getCoachs();
@@ -138,6 +170,7 @@ function general_display($tid,$rid,$round_max) {
 
     array_multisort($sort_list1, SORT_DESC,$sort_list2, SORT_DESC,$sort_list3, SORT_DESC,$sort_list4, SORT_DESC,$sort_list5, SORT_DESC,$list);
     $counter=1;
+    print "<br><div id=\"titre\">Classement général</div><div id=\"soustitre\">$text</div>";
     echo "<table
  style=\"border-color: black; width: 100%; text-align: left; margin-left: auto; margin-right: auto;text-align:center;\"
  border=\"1\" cellpadding=\"0\" cellspacing=\"0\">
@@ -170,13 +203,26 @@ function general_display($tid,$rid,$round_max) {
 }
 
 
-function rank_display($tid,$rid,$rank_type) {
+function rank_display($tid,$rid,$rank_type,$round_max) {
     $tour=new tournament($tid);
+    $text="";
+    $rounds=$tour->getRounds();
 
     if ($rid==-1) {
-        $rounds=$tour->getRounds();
+
         foreach ($rounds as $round) {
             $rid=max($rid,$round->rid);
+        }
+        $text="classement final";
+    }
+    else {
+        $count=1;
+        foreach ($rounds as $round) {
+            if ($rid==$round->rid) {
+                $text="classement à la ronde $count";
+                break;
+            }
+            $count++;
         }
     }
     $round=new round($rid);
@@ -220,6 +266,7 @@ function rank_display($tid,$rid,$rank_type) {
 
     array_multisort($sort_list, SORT_DESC,$list);
     $counter=1;
+    print "<br><div id=\"titre\">$ranking_name</div><div id=\"soustitre\">$text</div>";
     echo "<table
  style=\"border-color: black; width: 100%; text-align: left; margin-left: auto; margin-right: auto;text-align:center;\"
  border=\"1\" cellpadding=\"0\" cellspacing=\"0\">
@@ -255,29 +302,34 @@ function tournament_html($tour_id) {
         $r=$_GET['round'];
     }
 
-    if ($_GET['rank'] == 'general') {
-        general_display($tour_id,$r,round::C_MAX);
+     $round_max=round::C_UNIQUE;
+    if (isset($_GET['total'])) {
+        if ($_GET['total']==1)
+        {
+            $round_max=round::C_MAX;
+        }
     }
-    if ($_GET['rank'] == 'rank') {
-        general_display($tour_id,$r,round::C_UNIQUE);
+
+    if ($_GET['rank'] == 'general') {
+        general_display($tour_id,$r,$round_max);
     }
     if ($_GET['rank'] == 'td_pos') {
-        rank_display($tour_id,$r,tournament::C_TD_POS);
+        rank_display($tour_id,$r,tournament::C_TD_POS,$round_max);
     }
     if ($_GET['rank'] == 'td_neg') {
-        rank_display($tour_id,$r,tournament::C_TD_NEG);
+        rank_display($tour_id,$r,tournament::C_TD_NEG,$round_max);
     }
     if ($_GET['rank'] == 'cas_pos') {
-        rank_display($tour_id,$r,tournament::C_CAS_POS);
+        rank_display($tour_id,$r,tournament::C_CAS_POS,$round_max);
     }
     if ($_GET['rank'] == 'cas_neg') {
-        rank_display($tour_id,$r,tournament::C_CAS_NEG);
+        rank_display($tour_id,$r,tournament::C_CAS_NEG,$round_max);
     }
     if ($_GET['rank'] == 'foul_pos') {
-        rank_display($tour_id,$r,tournament::C_FOUL_POS);
+        rank_display($tour_id,$r,tournament::C_FOUL_POS,$round_max);
     }
     if ($_GET['rank'] == 'foul_neg') {
-        rank_display($tour_id,$r,tournament::C_FOUL_NEG);
+        rank_display($tour_id,$r,tournament::C_FOUL_NEG,$round_max);
     }
 
     if ($_GET['rank'] == 'matchs') {

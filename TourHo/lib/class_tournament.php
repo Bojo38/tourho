@@ -215,30 +215,32 @@ public function getCoachOpponents($coach_id,$round_id,$round_max) {
 public function getVNDByCoach($coach_id,$round_id,$value_type,$round_max) {
         
         global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
-        $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
-        mysql_select_db($db_name,$link);
-
         $value=0;
         switch($value_type) {
             case tournament::C_VND_V:
                 $c1='td1>td2';
                 $c2='td1<td2';
+                $log="V";
                 break;
             case tournament::C_VND_N:
                 $c1='td1=td2';
                 $c2='td1=td2';
+                $log="N";
                 break;
             case tournament::C_VND_D:
                 $c1='td1<td2';
                 $c2='td1>td2';
+                $log="D";
                 break;
             case tournament::C_VND_GV:
                 $c1='td1>td2+2';
                 $c2='td1+2<td2';
+                $log="GV";
                 break;
             case tournament::C_VND_PD:
-                $c1='td1=td2+1';
-                $c2='td1+1=td2';
+                $c1='td1+1=td2';
+                $c2='td1=td2+1';
+                $log="PD";
                 break;
         }
 
@@ -251,6 +253,9 @@ public function getVNDByCoach($coach_id,$round_id,$value_type,$round_max) {
             $sep='<=';
         }
 
+        $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
+        mysql_select_db($db_name,$link);
+
         $query="SELECT COUNT( value ) FROM (
                     (
                         (SELECT tourho_match.mid AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid1 and tourho_match.f_rid".$sep."$round_id AND $c1)
@@ -261,7 +266,10 @@ public function getVNDByCoach($coach_id,$round_id,$value_type,$round_max) {
         while ($r = mysql_fetch_row($result)) {
             $value=($r[0]);
         }
-        mysql_close($link);
+        /*$coach=new coach($coach_id);
+        print "$coach->name $log : $value<br>";*/
+
+        //mysql_close($link);
         return $value;
     }
 
@@ -356,14 +364,22 @@ public function getVNDByCoach($coach_id,$round_id,$value_type,$round_max) {
         $pd=$this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_PD,$round_max);
         $d=$this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_D,$round_max);
 
+        $td_pos=$this->getValueByCoach($coach_id,$round_id,tournament::C_TD_POS,$round_max);
+        $td_neg=$this->getValueByCoach($coach_id,$round_id,tournament::C_TD_NEG,$round_max);
+        $cas_pos=$this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_POS,$round_max);
+        $cas_neg=$this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_NEG,$round_max);
+        $foul_pos=$this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_POS,$round_max);
+        $foul_neg=$this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_NEG,$round_max);
+
+        /*$coach=new coach($coach_id);
+        echo "$coach->name: GV:$gv, V:$v, N:$n, PD:$pd, D:$d vGV:$this->large_victory, vV:$this->victory, vN:$this->draw
+                vPD:$this->little_lost, vD:$this->lost <br>";*/
+
         $points=$gv*$this->large_victory+($v-$gv)*$this->victory+$n*$this->draw+
                 $pd*$this->little_lost+($p-$pd)*$this->lost+
-                $this->getValueByCoach($coach_id,$round_id,tournament::C_TD_POS,$round_max)*$this->td_pos+
-                $this->getValueByCoach($coach_id,$round_id,tournament::C_TD_NEG,$round_max)*$this->td_neg+
-                $this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_POS,$round_max)*$this->cas_pos+
-                $this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_NEG,$round_max)*$this->cas_neg+
-                $this->getValueByCoach($coach_id,$round_id,tournament::C_FOUL_POS,$round_max)*$this->foul_pos+
-                $this->getValueByCoach($coach_id,$round_id,tournament::C_FOUL_NEG,$round_max)*$this->foul_neg;
+                $td_pos*$this->td_pos+$td_neg *$this->td_neg+
+                $cas_pos*$this->cas_pos+$cas_neg *$this->cas_neg+
+                $foul_pos*$this->foul_pos+$foul_neg *$this->foul_neg;
                return $points;
     }
 
