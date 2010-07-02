@@ -10,6 +10,9 @@
  * @author Frederic Berger
  */
 class round {
+    const C_UNIQUE=1;
+    const C_MAX=2;
+    
     public $rid=0;
      function __construct($id)
     {

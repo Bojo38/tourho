@@ -135,14 +135,22 @@ class tournament {
         return $list;
     }
 
-public function getCoachOpponents($coach_id,$round_id) {
+public function getCoachOpponents($coach_id,$round_id,$round_max) {
         global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
         $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name,$link);
         $list=array();
-        $query="(SELECT tourho_match.f_cid2 AS cid FROM tourho_match WHERE $coach_id = tourho_match.f_cid1 and tourho_match.f_rid<=$round_id )
+        if ($round_max==round::C_UNIQUE)
+        {
+            $sep='=';
+        }
+        else
+        {
+            $sep='<=';
+        }
+        $query="(SELECT tourho_match.f_cid2 AS cid FROM tourho_match WHERE $coach_id = tourho_match.f_cid1 and tourho_match.f_rid".$sep."$round_id )
                         UNION
-                        (SELECT tourho_match.f_cid1 AS cid FROM tourho_match WHERE $coach_id = tourho_match.f_cid2 and tourho_match.f_rid<=$round_id )
+                        (SELECT tourho_match.f_cid1 AS cid FROM tourho_match WHERE $coach_id = tourho_match.f_cid2 and tourho_match.f_rid".$sep."$round_id )
                   ";
         $result=mysql_query($query);
         while ($r = mysql_fetch_row($result)) {
@@ -151,7 +159,7 @@ public function getCoachOpponents($coach_id,$round_id) {
         mysql_close($link);
         return $list;
     }
-    public function getValueByCoach($coach_id,$round_id,$value_type) {
+    public function getValueByCoach($coach_id,$round_id,$value_type,$round_max) {
         global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
         $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name,$link);
@@ -182,11 +190,19 @@ public function getCoachOpponents($coach_id,$round_id) {
                 $s2='foul1';
                 break;
         }
+        if ($round_max==round::C_UNIQUE)
+        {
+            $sep='=';
+        }
+        else
+        {
+            $sep='<=';
+        }
         $query="SELECT SUM( value ) FROM (
                     (
-                        (SELECT tourho_match.".$s1." AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid1 and tourho_match.f_rid<=$round_id)
+                        (SELECT tourho_match.".$s1." AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid1 and tourho_match.f_rid".$sep."$round_id)
                         UNION
-                        (SELECT tourho_match.".$s2." AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid2 and tourho_match.f_rid<=$round_id)
+                        (SELECT tourho_match.".$s2." AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid2 and tourho_match.f_rid".$sep."$round_id)
                     ) AS liste) ";
         $result=mysql_query($query);
         while ($r = mysql_fetch_row($result)) {
@@ -196,7 +212,7 @@ public function getCoachOpponents($coach_id,$round_id) {
         return $value;
     }
 
-public function getVNDByCoach($coach_id,$round_id,$value_type) {
+public function getVNDByCoach($coach_id,$round_id,$value_type,$round_max) {
         
         global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
         $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
@@ -225,11 +241,21 @@ public function getVNDByCoach($coach_id,$round_id,$value_type) {
                 $c2='td1+1=td2';
                 break;
         }
+
+        if ($round_max==round::C_UNIQUE)
+        {
+            $sep='=';
+        }
+        else
+        {
+            $sep='<=';
+        }
+
         $query="SELECT COUNT( value ) FROM (
                     (
-                        (SELECT tourho_match.mid AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid1 and tourho_match.f_rid<=$round_id AND $c1)
+                        (SELECT tourho_match.mid AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid1 and tourho_match.f_rid".$sep."$round_id AND $c1)
                         UNION
-                        (SELECT tourho_match.mid AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid2 and tourho_match.f_rid<=$round_id AND $c2)
+                        (SELECT tourho_match.mid AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid2 and tourho_match.f_rid".$sep."$round_id AND $c2)
                     ) AS liste) ";
         $result=mysql_query($query);
         while ($r = mysql_fetch_row($result)) {
@@ -277,43 +303,43 @@ public function getVNDByCoach($coach_id,$round_id,$value_type) {
         return $ranking_name;
     }
 
-    public function getRankingValue($coach_id,$round_id,$ranking)
+    public function getRankingValue($coach_id,$round_id,$ranking,$round_max)
     {
         $value=0;
         switch($ranking) {
             case tournament::C_RANKING_DIFF_FOUL:
-                $value=$this->getValueByCoach($coach_id,$round_id,tournament::C_FOUL_POS)-$this->getValueByCoach($coach_id,$round_id,tournament::C_FOUL_NEG);
+                $value=$this->getValueByCoach($coach_id,$round_id,tournament::C_FOUL_POS,$round_max)-$this->getValueByCoach($coach_id,$round_id,tournament::C_FOUL_NEG,$round_max);
                 break;
             case tournament::C_RANKING_DIFF_SOR:
-                $value=$this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_POS)-$this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_NEG);
+                $value=$this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_POS,$round_max)-$this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_NEG,$round_max);
                 break;
             case tournament::C_RANKING_DIFF_TD:
-                $value=$this->getValueByCoach($coach_id,$round_id,tournament::C_TD_POS)-$this->getValueByCoach($coach_id,$round_id,tournament::C_TD_NEG);
+                $value=$this->getValueByCoach($coach_id,$round_id,tournament::C_TD_POS,$round_max)-$this->getValueByCoach($coach_id,$round_id,tournament::C_TD_NEG,$round_max);
                 break;
             case tournament::C_RANKING_FOUL:
-                $value=$this->getValueByCoach($coach_id,$round_id,tournament::C_FOUL_POS);
+                $value=$this->getValueByCoach($coach_id,$round_id,tournament::C_FOUL_POS,$round_max);
                 break;
             case tournament::C_RANKING_OPP_POINTS:
-               $opps=$this->getCoachOpponents($coach_id,$round_id);
+               $opps=$this->getCoachOpponents($coach_id,$round_id,$round_max);
                 $value=0;
                 foreach ($opps as $opp)
                 {
-                    $value+= $this->getPointsByCoach($opp,$round_id);
+                    $value+= $this->getPointsByCoach($opp,$round_id,$round_max);
                 }
                 break;
             case tournament::C_RANKING_POINTS:
-                $value=$this->getPointsByCoach($coach_id,$round_id);
+                $value=$this->getPointsByCoach($coach_id,$round_id,$round_max);
                 break;
             case tournament::C_RANKING_SOR:
-                $value=$this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_POS);
+                $value=$this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_POS,$round_max);
                 break;
             case tournament::C_RANKING_TD:
-                $value=$this->getValueByCoach($coach_id,$round_id,tournament::C_TD_POS);
+                $value=$this->getValueByCoach($coach_id,$round_id,tournament::C_TD_POS,$round_max);
                 break;
             case tournament::C_RANKING_VND:
-                $value=$this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_V)."/".
-                $this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_N)."/".
-                $this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_D);
+                $value=$this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_V,$round_max)."/".
+                $this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_N,$round_max)."/".
+                $this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_D,$round_max);
                 break;
             default:
                 $value=0;
@@ -322,22 +348,22 @@ public function getVNDByCoach($coach_id,$round_id,$value_type) {
         return $value;
     }
 
-    public function getPointsByCoach($coach_id,$round_id)
+    public function getPointsByCoach($coach_id,$round_id,$round_max)
     {
-        $gv= $this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_GV);
-        $v=$this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_V);
-        $n=$this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_N);
-        $pd=$this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_PD);
-        $d=$this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_D);
+        $gv= $this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_GV,$round_max);
+        $v=$this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_V,$round_max);
+        $n=$this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_N,$round_max);
+        $pd=$this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_PD,$round_max);
+        $d=$this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_D,$round_max);
 
         $points=$gv*$this->large_victory+($v-$gv)*$this->victory+$n*$this->draw+
                 $pd*$this->little_lost+($p-$pd)*$this->lost+
-                $this->getValueByCoach($coach_id,$round_id,tournament::C_TD_POS)*$this->td_pos+
-                $this->getValueByCoach($coach_id,$round_id,tournament::C_TD_NEG)*$this->td_neg+
-                $this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_POS)*$this->cas_pos+
-                $this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_NEG)*$this->cas_neg+
-                $this->getValueByCoach($coach_id,$round_id,tournament::C_FOUL_POS)*$this->foul_pos+
-                $this->getValueByCoach($coach_id,$round_id,tournament::C_FOUL_NEG)*$this->foul_neg;
+                $this->getValueByCoach($coach_id,$round_id,tournament::C_TD_POS,$round_max)*$this->td_pos+
+                $this->getValueByCoach($coach_id,$round_id,tournament::C_TD_NEG,$round_max)*$this->td_neg+
+                $this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_POS,$round_max)*$this->cas_pos+
+                $this->getValueByCoach($coach_id,$round_id,tournament::C_CAS_NEG,$round_max)*$this->cas_neg+
+                $this->getValueByCoach($coach_id,$round_id,tournament::C_FOUL_POS,$round_max)*$this->foul_pos+
+                $this->getValueByCoach($coach_id,$round_id,tournament::C_FOUL_NEG,$round_max)*$this->foul_neg;
                return $points;
     }
 

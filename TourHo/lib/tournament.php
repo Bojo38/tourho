@@ -81,7 +81,8 @@ function match_display($round_id) {
 </table>";
 }
 
-function general_display($tid,$rid) {
+
+function general_display($tid,$rid,$round_max) {
     $tour=new tournament($tid);
 
     if ($rid==-1) {
@@ -117,12 +118,14 @@ function general_display($tid,$rid) {
         $element['Team']=$coach->team;
         $element['Race']=$coach->race;
 
-        $element['Value1']=$tour->getRankingValue($coach->cid,$rid,$tour->rank1);
-        $element['Value2']=$tour->getRankingValue($coach->cid,$rid,$tour->rank2);
-        $element['Value3']=$tour->getRankingValue($coach->cid,$rid,$tour->rank3);
-        $element['Value4']=$tour->getRankingValue($coach->cid,$rid,$tour->rank4);
-        $element['Value5']=$tour->getRankingValue($coach->cid,$rid,$tour->rank5);
-        
+        $element['Value1']=$tour->getRankingValue($coach->cid,$rid,$tour->rank1,$round_max);
+        $element['Value2']=$tour->getRankingValue($coach->cid,$rid,$tour->rank2,$round_max);
+        $element['Value3']=$tour->getRankingValue($coach->cid,$rid,$tour->rank3,$round_max);
+        $element['Value4']=$tour->getRankingValue($coach->cid,$rid,$tour->rank4,$round_max);
+        $element['Value5']=$tour->getRankingValue($coach->cid,$rid,$tour->rank5,$round_max);
+
+
+
         array_push($list, $element);
         array_push($sort_list1,$element['Value1']);
         array_push($sort_list2,$element['Value2']);
@@ -189,7 +192,7 @@ function rank_display($tid,$rid,$rank_type) {
         $element['Coach']=$coach->name;
         $element['Team']=$coach->team;
         $element['Race']=$coach->race;
-        $element['Value']=$tour->getValueByCoach($coach->cid, $rid, $rank_type);
+        $element['Value']=$tour->getValueByCoach($coach->cid, $rid, $rank_type,$round_max);
         array_push($list, $element);
         array_push($sort_list,$element['Value']);
     }
@@ -253,14 +256,16 @@ function tournament_html($tour_id) {
     }
 
     if ($_GET['rank'] == 'general') {
-        general_display($tour_id,$r);
+        general_display($tour_id,$r,round::C_MAX);
+    }
+    if ($_GET['rank'] == 'rank') {
+        general_display($tour_id,$r,round::C_UNIQUE);
     }
     if ($_GET['rank'] == 'td_pos') {
         rank_display($tour_id,$r,tournament::C_TD_POS);
     }
     if ($_GET['rank'] == 'td_neg') {
         rank_display($tour_id,$r,tournament::C_TD_NEG);
-
     }
     if ($_GET['rank'] == 'cas_pos') {
         rank_display($tour_id,$r,tournament::C_CAS_POS);
