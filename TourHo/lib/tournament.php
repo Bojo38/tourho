@@ -15,13 +15,13 @@ function generate_tour_menu($tour_id) {
             <ul id=\"nav\" class=\"dropdown dropdown-horizontal\">
                 <li><span class=\"dir\">Classements finaux</span>
                     <ul>
-                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=general\">General</a></li>
-                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=td_pos\">Touchdowns marqués</a></li>
-                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=td_neg\">Touchdowns encaissés</a></li>
-                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_pos\">Sorties réalisées</a></li>
-                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_neg\">Sorties subies</a></li>
-                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_pos\">Agressions réussies</a></li>
-                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_neg\">Agressions subies</a></li>
+                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=general&amp;total=1\">General</a></li>
+                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=td_pos&amp;total=1\">Touchdowns marqués</a></li>
+                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=td_neg&amp;total=1\">Touchdowns encaissés</a></li>
+                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_pos&amp;total=1\">Sorties réalisées</a></li>
+                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_neg&amp;total=1\">Sorties subies</a></li>
+                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_pos&amp;total=1\">Agressions réussies</a></li>
+                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_neg&amp;total=1\">Agressions subies</a></li>
                     </ul>
                 </li>";    
     foreach ($rounds as $round) {
