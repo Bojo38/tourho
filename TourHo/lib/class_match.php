@@ -11,7 +11,7 @@
  */
 class match {
    public $mid=0;
-     function __construct($id)
+    function __construct($id)
     {
         global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
 
