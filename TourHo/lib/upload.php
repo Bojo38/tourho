@@ -46,7 +46,7 @@ function startElement($parser, $name, $attrs) {
         $tournament_open=true;
     }
     if ($name=='PARAMETERS') {
-        $id=tournament::add($attrs['NAME'],$attrs['ORGANIZER'],'','',
+        $id=tournament::add($attrs['NAME'],$attrs['ORGANIZER'],$attrs['DATE'],$attrs['PLACE'],
             $attrs['LARGE_VICTORY'],$attrs['VICTORY'],$attrs['DRAW'],$attrs['LITTLE_LOST'],$attrs['LOST'],
             $attrs['RANK1'],$attrs['RANK2'],$attrs['RANK3'],$attrs['RANK4'],$attrs['RANK5'],
             $attrs['BONUS_POS_TD'],$attrs['BONUS_NEG_TD'],$attrs['BONUS_POS_FOUL'],$attrs['BONUS_NEG_FOUL'],$attrs['BONUS_POS_SOR'],$attrs['BONUS_NEG_SOR']);

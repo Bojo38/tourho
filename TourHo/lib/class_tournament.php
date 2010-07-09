@@ -61,7 +61,7 @@ class tournament {
 
         $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name,$link);
-        $query="SELECT rid FROM ".$db_prefix."round WHERE f_tid=$this->tid ORDER BY date";
+        $query="SELECT rid FROM ".$db_prefix."round WHERE f_tid=$this->tid ORDER BY number";
         $result=mysql_query($query);
         $index=0;
         while ($r = mysql_fetch_row($result)) {
@@ -96,7 +96,7 @@ class tournament {
         $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name,$link);
         
-        $query="INSERT INTO `$db_name`.`".$db_prefix."tournament` (`tid` ,`date` ,`name` ,`orgas` ,`place` ,`rank1` ,`rank2` ,`rank3` ,`rank4` ,`rank5` ,`large_victory` ,`victory` ,`draw` ,`little_lost` ,`lost` ,`td_pos` ,`td_neg` ,`foul_pos` ,`foul_neg` ,`cas_pos` ,`cas_neg`)VALUES ('', '$date', '".addslashes($name)."', '".addslashes($orgas)."', '".addslashes($place)."', '$rank1', '$rank2', '$rank3', '$rank4', '$rank5', '$large_victory', '$victory', '$draw', '$little_lost', '$lost', '$td_pos', '$td_neg', '$foul_pos', '$foul_neg', '$cas_pos', '$cas_neg');";
+        $query="INSERT INTO `$db_name`.`".$db_prefix."tournament` (`tid` ,`date` ,`name` ,`orgas` ,`place` ,`rank1` ,`rank2` ,`rank3` ,`rank4` ,`rank5` ,`large_victory` ,`victory` ,`draw` ,`little_lost` ,`lost` ,`td_pos` ,`td_neg` ,`foul_pos` ,`foul_neg` ,`cas_pos` ,`cas_neg`)VALUES ('', str_to_date('$date','%d/%m/%Y'), '".addslashes($name)."', '".addslashes($orgas)."', '".addslashes($place)."', '$rank1', '$rank2', '$rank3', '$rank4', '$rank5', '$large_victory', '$victory', '$draw', '$little_lost', '$lost', '$td_pos', '$td_neg', '$foul_pos', '$foul_neg', '$cas_pos', '$cas_neg');";
         $result=mysql_query($query);
         $id=mysql_insert_id ($link);
         mysql_close($link);
@@ -233,13 +233,13 @@ public function getVNDByCoach($coach_id,$round_id,$value_type,$round_max) {
                 $log="D";
                 break;
             case tournament::C_VND_GV:
-                $c1='td1>td2+2';
-                $c2='td1+2<td2';
+                $c1='td1>=td2+'.$this->gv_gap;
+                $c2='td1+'.$this->gv_gap.'<=td2';
                 $log="GV";
                 break;
             case tournament::C_VND_PD:
-                $c1='td1+1=td2';
-                $c2='td1=td2+1';
+                $c1='td1+'.$this->ll_gap.'=td2';
+                $c2='td1=td2+'.$this->ll_gap;
                 $log="PD";
                 break;
         }

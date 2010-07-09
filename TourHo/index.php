@@ -15,6 +15,7 @@ require 'lib/tournament.php';
         <div id="titre">R&eacute;sultats de tournois</div><br>
         <?php
         generate_menu();
+       
         if (isset($_GET['upload'])) {
             if ($_GET['upload'] == 'html') {
                 upload_html();
