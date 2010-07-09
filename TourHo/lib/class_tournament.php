@@ -198,17 +198,31 @@ public function getCoachOpponents($coach_id,$round_id,$round_max) {
         {
             $sep='<=';
         }
-        $query="SELECT SUM( value ) FROM (
+
+        $query1="SELECT SUM(tourho_match.".$s1.") AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid1 and tourho_match.f_rid".$sep."$round_id";
+        $query2="SELECT SUM(tourho_match.".$s2.") AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid2 and tourho_match.f_rid".$sep."$round_id";
+
+        /*$query="SELECT SUM( value ) FROM (
                     (
                         (SELECT tourho_match.".$s1." AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid1 and tourho_match.f_rid".$sep."$round_id)
                         UNION
                         (SELECT tourho_match.".$s2." AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid2 and tourho_match.f_rid".$sep."$round_id)
-                    ) AS liste) ";
-        $result=mysql_query($query);
+                    ) AS liste) ";*/
+        $result=mysql_query($query1);
         while ($r = mysql_fetch_row($result)) {
-            $value=($r[0]);
+            $value+=($r[0]);
+        }
+        $result=mysql_query($query2);
+        while ($r = mysql_fetch_row($result)) {
+            $value+=($r[0]);
         }
         mysql_close($link);
+        $coach=new coach($coach_id);
+        
+        /*if ($coach->name=='toblerona')
+        {
+            print $query;
+        }*/
         return $value;
     }
 

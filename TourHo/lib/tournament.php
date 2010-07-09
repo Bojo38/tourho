@@ -272,6 +272,7 @@ function rank_display($tid,$rid,$rank_type,$round_max) {
         $element['Team']=$coach->team;
         $element['Race']=$coach->race;
         $element['Value']=$tour->getValueByCoach($coach->cid, $rid, $rank_type,$round_max);
+        
         array_push($list, $element);
         array_push($sort_list,$element['Value']);
 
