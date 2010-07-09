@@ -217,7 +217,7 @@ public function getCoachOpponents($coach_id,$round_id,$round_max) {
             $value+=($r[0]);
         }
         mysql_close($link);
-        $coach=new coach($coach_id);
+        //$coach=new coach($coach_id);
         
         /*if ($coach->name=='toblerona')
         {
