@@ -38,8 +38,23 @@ public $cid=0;
        $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
        mysql_select_db($db_name,$link);
 
-       $query="INSERT INTO `$db_name`.`".$db_prefix."coach` (`cid` ,`f_tid` ,`name` ,`team` ,`race` ,`NAF` ,`rank`)VALUES ('', '$tid', '".addslashes($name)."', '".addslashes($team)."', '".addslashes($roster)."', '$naf', '$rank');";
+       $query="INSERT INTO `$db_name`.`".$db_prefix."coach` (`cid` ,`f_tid`,`name` ,`team` ,`race` ,`NAF` ,`rank`)VALUES ('', '$tid', '".addslashes($name)."', '".addslashes($team)."', '".addslashes($roster)."', '$naf', '$rank');";
       
+       $result=mysql_query($query);
+       $id=mysql_insert_id ($link);
+        mysql_close($link);
+        return $id;
+    }
+
+
+    public static function affect_team($name,$tid,$teid)
+    {
+         global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
+
+       $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
+       mysql_select_db($db_name,$link);
+
+       $query="UPDATE `$db_name`.`".$db_prefix."coach` SET `f_teid` = '$teid' WHERE `name` ='$name' AND `f_tid` ='$tid'";
        $result=mysql_query($query);
        $id=mysql_insert_id ($link);
         mysql_close($link);

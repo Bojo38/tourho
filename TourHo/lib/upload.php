@@ -4,6 +4,7 @@ require_once 'lib/class_tournament.php';
 require_once 'lib/class_coach.php';
 require_once 'lib/class_round.php';
 require_once 'lib/class_match.php';
+require_once 'lib/class_team.php';
 
 function upload_html() {
     echo "<br><br>";
@@ -27,6 +28,7 @@ $current_tournament=0;
 $coaches=array();
 $current_round_number=0;
 $current_round=null;
+$teid=-1;
 
 // Fonction associée à l’événement début d’élément
 function startElement($parser, $name, $attrs) {
@@ -36,6 +38,7 @@ function startElement($parser, $name, $attrs) {
     global $coaches;
     global $current_round_number;
     global $current_round;
+    global $teid;
 
     for ($i = 0; $i < $depth[$parser]; $i++) {print " ";}
     array_push($stack,$name);
@@ -49,7 +52,16 @@ function startElement($parser, $name, $attrs) {
         $id=tournament::add($attrs['NAME'],$attrs['ORGANIZER'],$attrs['DATE'],$attrs['PLACE'],
             $attrs['LARGE_VICTORY'],$attrs['VICTORY'],$attrs['DRAW'],$attrs['LITTLE_LOST'],$attrs['LOST'],
             $attrs['RANK1'],$attrs['RANK2'],$attrs['RANK3'],$attrs['RANK4'],$attrs['RANK5'],
-            $attrs['BONUS_POS_TD'],$attrs['BONUS_NEG_TD'],$attrs['BONUS_POS_FOUL'],$attrs['BONUS_NEG_FOUL'],$attrs['BONUS_POS_SOR'],$attrs['BONUS_NEG_SOR']);
+            $attrs['BONUS_POS_TD'],$attrs['BONUS_NEG_TD'],$attrs['BONUS_POS_FOUL'],$attrs['BONUS_NEG_FOUL'], $attrs['BONUS_POS_SOR'],$attrs['BONUS_NEG_SOR'],
+            $attrs['VICTORY_TEAM'],$attrs['DRAW_TEAM'],$attrs['LOST_TEAM'],
+            $attrs['RANK1_TEAM'],$attrs['RANK2_TEAM'],$attrs['RANK3_TEAM'],$attrs['RANK4_TEAM'],$attrs['RANK5_TEAM'],
+            $attrs['BONUS_POS_TD_TEAM'],$attrs['BONUS_NEG_TD_TEAM'],$attrs['BONUS_POS_FOUL_TEAM'],$attrs['BONUS_NEG_FOUL_TEAM'], $attrs['BONUS_POS_SOR_TEAM'],$attrs['BONUS_NEG_SOR_TEAM'],
+            $attrs['BYTEAM']=='true',
+            $attrs['TEAMMATES'],
+            $attrs['TEAMPAIRING'],
+            $attrs['TEAMINDIVPAIRING'],
+            $attrs['TEAMVICTORYPOINTS'],
+            $attrs['TEAMVICTORYONLY']=='true');
 
         if ($id>=0) {
             $current_tournament=new tournament($id);
@@ -59,13 +71,30 @@ function startElement($parser, $name, $attrs) {
             $current_tournament=null;
         }
     }
+
+    if ($name=='TEAM') {
+        if ($current_tournament!=null) {
+            $teid=team::add($attrs['NAME'],$current_tournament->tid);
+            $teams[$attrs['NAME']]=$teid;
+            if ($teid>=0) {
+                print "TEAM: Upload complete - ".$attrs['NAME']."<br>";
+            }
+        }
+    }
+
     if ($name=='COACH') {
         if ($current_tournament!=null) {
-            $cid=coach::add($attrs['NAME'],$current_tournament->tid, $attrs['TEAM'],$attrs['ROSTER'],$attrs['NAF'],$attrs['RANK']);
-            $coaches[$attrs['NAME']]=$cid;
-            if ($cid>=0) {
-                print "COACH: Upload complete - ".$attrs['NAME']."<br>";
+            if ($teid>=0) {
+                coach::affect_team($attrs['NAME'],$current_tournament->tid,$teid);
             }
+            else {
+                $cid=coach::add($attrs['NAME'],$current_tournament->tid, $attrs['TEAM'],$attrs['ROSTER'],$attrs['NAF'],$attrs['RANK']);
+                $coaches[$attrs['NAME']]=$cid;
+                if ($cid>=0) {
+                    print "COACH: Upload complete - ".$attrs['NAME']."<br>";
+                }
+            }
+
         }
     }
 
@@ -113,6 +142,7 @@ function endElement($parser, $name) {
     global $globaldata;
     global $current_tournament;
     global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
+    global $teid;
 
     if ($name=='TOURNAMENT') {
         $tournament_open=false;
@@ -126,6 +156,10 @@ function endElement($parser, $name) {
         $result=mysql_query($query);
 
         print "DONE.";
+    }
+
+    if ($name=='TEAM') {
+        $teid=-1;
     }
    /* for ($i = 0; $i < $depth[$parser]-1; $i++) {print " ";}
     print "Fin de l'élément : ".$name." avec la valeur :".$globaldata." -- ";
