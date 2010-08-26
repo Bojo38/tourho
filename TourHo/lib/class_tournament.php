@@ -406,6 +406,7 @@ class tournament {
                         UNION
                         (SELECT tourho_match.mid AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid2 and tourho_match.f_rid" . $sep . "$round_id AND $c2)
                     ) AS liste) ";*/
+        
         $result = mysql_query($query);
         while ($r = mysql_fetch_row($result)) {
             $value = ($r[0]);

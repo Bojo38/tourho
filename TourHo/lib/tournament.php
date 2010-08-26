@@ -42,6 +42,7 @@ function generate_tour_menu($tour_id) {
                         <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_neg&amp;total=1\">Sorties subies</a></li>
                         <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_pos&amp;total=1\">Agressions réussies</a></li>
                         <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_neg&amp;total=1\">Agressions subies</a></li>
+                        <li><a href=\"index.php?tournament=$tour_id&amp;rank=minus&amp;total=1\">Minus</a></li>
                     </ul>
                 </li>";    
     foreach ($rounds as $round) {
@@ -91,6 +92,7 @@ function generate_tour_menu($tour_id) {
                             <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_neg&amp;round=$round->rid\">Sorties subies</a></li>
                             <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_pos&amp;round=$round->rid\">Agressions réussies</a></li>
                             <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_neg&amp;round=$round->rid\">Agressions subies</a></li>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=minus&amp;round=$round->rid\">Minus</a></li>
                         </ul>
                     </li>";
         if ($tour->team_tournament) {
@@ -107,6 +109,7 @@ function generate_tour_menu($tour_id) {
                             <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_neg&amp;round=$round->rid&amp;total=1\">Sorties subies</a></li>
                             <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_pos&amp;round=$round->rid&amp;total=1\">Agressions réussies</a></li>
                             <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_neg&amp;round=$round->rid&amp;total=1\">Agressions subies</a></li>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=minus&amp;round=$round->rid&amp;total=1\">Minus</a></li>
                         </ul>
                     </li>
                 </ul></li>";
@@ -306,7 +309,7 @@ function match_team_display($tid,$round_id) {
 }
 
 
-function general_display($tid,$rid,$round_max) {
+function general_display($tid,$rid,$round_max,$minus) {
     $tour=new tournament($tid);
 
     $rounds=$tour->getRounds();
@@ -315,7 +318,7 @@ function general_display($tid,$rid,$round_max) {
         foreach ($rounds as $round) {
             $rid=max($rid,$round->rid);
         }
-        $text="classement final";
+        $text="Classement final";
     }
     else {
         $count=1;
@@ -336,6 +339,7 @@ function general_display($tid,$rid,$round_max) {
     $round=new round($rid);
 
     $coachs=$tour->getCoachs();
+    
     global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
 
     $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
@@ -366,8 +370,6 @@ function general_display($tid,$rid,$round_max) {
         $element['Value4']=$tour->getRankingValue($coach->cid,$rid,$tour->rank4,$round_max);
         $element['Value5']=$tour->getRankingValue($coach->cid,$rid,$tour->rank5,$round_max);
 
-
-
         array_push($list, $element);
         array_push($sort_list1,$element['Value1']);
         array_push($sort_list2,$element['Value2']);
@@ -380,7 +382,14 @@ function general_display($tid,$rid,$round_max) {
 
     array_multisort($sort_list1, SORT_DESC,$sort_list2, SORT_DESC,$sort_list3, SORT_DESC,$sort_list4, SORT_DESC,$sort_list5, SORT_DESC,$list);
     $counter=1;
-    print "<br><div id=\"titre\">Classement général</div><div id=\"soustitre\">$text</div>";
+    if ($minus==1)
+    {
+        print "<br><div id=\"titre\">Classement Minus</div><div id=\"soustitre\">$text</div>";
+    }
+    else
+    {
+        print "<br><div id=\"titre\">Classement général</div><div id=\"soustitre\">$text</div>";
+    }
     echo "<table
  style=\"border-color: black; width: 100%; text-align: left; margin-left: auto; margin-right: auto;text-align:center;\"
  border=\"0\" cellpadding=\"0\" cellspacing=\"0\">
@@ -407,20 +416,33 @@ function general_display($tid,$rid,$round_max) {
                 $suffix="";
             }
         }
-        print "<td  class=\"tab_pos$suffix\" id=\"".$counter."\">".$counter++."</td>";
-        print "<td class=\"tab_result$suffix\">".$element['Coach']."</td>";
-        if ($element['Team']=="") {
-            $element['Team']="&nbsp;";
-        }
-        print "<td class=\"tab_result$suffix\">".$element['Team']."</td>";
 
-        print "<td class=\"tab_result$suffix\">".$element['Race']."</td>";
-        print "<td class=\"tab_result$suffix\">".$element['Value1']."</td>";
-        print "<td class=\"tab_result$suffix\">".$element['Value2']."</td>";
-        print "<td class=\"tab_result$suffix\">".$element['Value3']."</td>";
-        print "<td class=\"tab_result$suffix\">".$element['Value4']."</td>";
-        print "<td class=\"tab_result$suffix\">".$element['Value5']."</td>";
-        print "</tr>";
+        if (
+            ($minus==0)||
+            (($minus==1)&&
+                (
+                    ($element['Race'] =="Gobelin") ||
+                    ($element['Race'] =="Halfling") ||
+                    ($element['Race'] =="Ogre")
+                ))
+           )
+        {
+            print "<tr>";
+            print "<td  class=\"tab_pos$suffix\" id=\"".$counter."\">".$counter++."</td>";
+            print "<td class=\"tab_result$suffix\">".$element['Coach']."</td>";
+            if ($element['Team']=="") {
+                $element['Team']="&nbsp;";
+            }
+            print "<td class=\"tab_result$suffix\">".$element['Team']."</td>";
+
+            print "<td class=\"tab_result$suffix\">".$element['Race']."</td>";
+            print "<td class=\"tab_result$suffix\">".$element['Value1']."</td>";
+            print "<td class=\"tab_result$suffix\">".$element['Value2']."</td>";
+            print "<td class=\"tab_result$suffix\">".$element['Value3']."</td>";
+            print "<td class=\"tab_result$suffix\">".$element['Value4']."</td>";
+            print "<td class=\"tab_result$suffix\">".$element['Value5']."</td>";
+            print "</tr>";
+        }
     }
     print "</tbody>
 </table>";
@@ -1005,8 +1027,11 @@ function tournament_html($tour_id) {
         }
     }
 
+    if ($_GET['rank'] == 'minus') {
+        general_display($tour_id,$r,$round_max,1);
+    }
     if ($_GET['rank'] == 'general') {
-        general_display($tour_id,$r,$round_max);
+        general_display($tour_id,$r,$round_max,0);
     }
      if ($_GET['rank_team'] == 'general') {
         general_team_display($tour_id,$r,$round_max);
@@ -1048,6 +1073,7 @@ function tournament_html($tour_id) {
     if ($_GET['rank_team'] == 'foul_neg') {
         rank_team_display($tour_id,$r,tournament::C_FOUL_NEG,$round_max);
     }
+
 
     if ($_GET['rank'] == 'matchs') {
         if (isset($_GET['round'])) {
