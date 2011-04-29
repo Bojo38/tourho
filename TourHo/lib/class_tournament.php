@@ -600,22 +600,30 @@ class tournament {
         $pd = $this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_PD, $round_max);
         $d = $this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_D, $round_max);
 
-        $td_pos = $this->getValueByCoach($coach_id, $round_id, tournament::C_TD_POS, $round_max);
-        $td_neg = $this->getValueByCoach($coach_id, $round_id, tournament::C_TD_NEG, $round_max);
-        $cas_pos = $this->getValueByCoach($coach_id, $round_id, tournament::C_CAS_POS, $round_max);
-        $cas_neg = $this->getValueByCoach($coach_id, $round_id, tournament::C_CAS_NEG, $round_max);
-        $foul_pos = $this->getValueByCoach($coach_id, $round_id, tournament::C_CAS_POS, $round_max);
-        $foul_neg = $this->getValueByCoach($coach_id, $round_id, tournament::C_CAS_NEG, $round_max);
+        $td_pos_nb = $this->getValueByCoach($coach_id, $round_id, tournament::C_TD_POS, $round_max);
+        $td_neg_nb = $this->getValueByCoach($coach_id, $round_id, tournament::C_TD_NEG, $round_max);
+        $cas_pos_nb = $this->getValueByCoach($coach_id, $round_id, tournament::C_CAS_POS, $round_max);
+        $cas_neg_nb = $this->getValueByCoach($coach_id, $round_id, tournament::C_CAS_NEG, $round_max);
+        $foul_pos_nb = $this->getValueByCoach($coach_id, $round_id, tournament::C_FOUL_POS, $round_max);
+        $foul_neg_nb = $this->getValueByCoach($coach_id, $round_id, tournament::C_FOUL_NEG, $round_max);
 
         /* $coach=new coach($coach_id);
           echo "$coach->name: GV:$gv, V:$v, N:$n, PD:$pd, D:$d vGV:$this->large_victory, vV:$this->victory, vN:$this->draw
-          vPD:$this->little_lost, vD:$this->lost <br>"; */
+          vPD:$this->little_lost, vD:$this->lost <br>";
+          echo "$coach->name: TD+: $td_pos_nb  * $this->td_pos$<br>";
+          echo "$coach->name: CAS+: $cas_pos_nb  * $this->cas_pos$<br>";
+
+        echo "$points = $gv * $this->large_victory + ($v - $gv) * $this->victory + $n * $this->draw +
+            $pd * $this->little_lost + ($p - $pd) * $this->lost +
+            $td_pos_nb * $this->td_pos + $td_neg_nb* $this->td_neg +
+            $cas_pos_nb * $this->cas_pos + $cas_neg_nb * $this->cas_neg +
+            $foul_pos_nb * $this->foul_pos + $foul_neg_nb * $this->foul_neg <BR>";*/
 
         $points = $gv * $this->large_victory + ($v - $gv) * $this->victory + $n * $this->draw +
             $pd * $this->little_lost + ($p - $pd) * $this->lost +
-            $td_pos * $this->td_pos + $td_neg * $this->td_neg +
-            $cas_pos * $this->cas_pos + $cas_neg * $this->cas_neg +
-            $foul_pos * $this->foul_pos + $foul_neg * $this->foul_neg;
+            $td_pos_nb * $this->td_pos + $td_neg_nb* $this->td_neg +
+            $cas_pos_nb * $this->cas_pos + $cas_neg_nb * $this->cas_neg +
+            $foul_pos_nb * $this->foul_pos + $foul_neg_nb * $this->foul_neg;
         return $points;
     }
 
@@ -625,28 +633,28 @@ class tournament {
         $n = $this->getVNDByTeam($team_id, $round_id, tournament::C_VND_N, $round_max);
         $d = $this->getVNDByTeam($team_id, $round_id, tournament::C_VND_D, $round_max);
 
-        $td_pos =0;
-        $td_neg =0;
-        $cas_pos =0;
-        $cas_neg =0;
-        $foul_pos =0;
-        $foul_neg =0;
+        $td_pos_nb =0;
+        $td_neg_nb =0;
+        $cas_pos_nb =0;
+        $cas_neg_nb =0;
+        $foul_pos_nb =0;
+        $foul_neg_nb =0;
 
         $team=new team($team_id);
         $coachs=$team->getCoachs();
         foreach ($coachs as $coach) {
-            $td_pos += $this->getValueByCoach($coach->cid, $round_id, tournament::C_TD_POS, $round_max);
-            $td_neg += $this->getValueByCoach($coach->cid, $round_id, tournament::C_TD_NEG, $round_max);
-            $cas_pos += $this->getValueByCoach($coach->cid, $round_id, tournament::C_CAS_POS, $round_max);
-            $cas_neg += $this->getValueByCoach($coach->cid, $round_id, tournament::C_CAS_NEG, $round_max);
-            $foul_pos += $this->getValueByCoach($coach->cid, $round_id, tournament::C_CAS_POS, $round_max);
-            $foul_neg += $this->getValueByCoach($coach->cid, $round_id, tournament::C_CAS_NEG, $round_max);
+            $td_pos_nb += $this->getValueByCoach($coach->cid, $round_id, tournament::C_TD_POS, $round_max);
+            $td_neg_nb += $this->getValueByCoach($coach->cid, $round_id, tournament::C_TD_NEG, $round_max);
+            $cas_pos_nb += $this->getValueByCoach($coach->cid, $round_id, tournament::C_CAS_POS, $round_max);
+            $cas_neg_nb += $this->getValueByCoach($coach->cid, $round_id, tournament::C_CAS_NEG, $round_max);
+            $foul_pos_nb += $this->getValueByCoach($coach->cid, $round_id, tournament::C_CAS_POS, $round_max);
+            $foul_neg_nb += $this->getValueByCoach($coach->cid, $round_id, tournament::C_CAS_NEG, $round_max);
         }
 
         $points = $v*  $this->victory_team + $n * $this->draw_team + $p * $this->lost_team +
-            $td_pos * $this->td_pos_team + $td_neg * $this->td_neg_team +
-            $cas_pos * $this->cas_pos_team + $cas_neg * $this->cas_neg_team +
-            $foul_pos * $this->foul_pos_team + $foul_neg * $this->foul_neg_team;
+            $td_pos_nb * $this->td_pos_team + $td_neg_nb * $this->td_neg_team +
+            $cas_pos_nb * $this->cas_pos_team + $cas_neg_nb * $this->cas_neg_team +
+            $foul_pos_nb * $this->foul_pos_team + $foul_neg_nb * $this->foul_neg_team;
         return $points;
     }
 
