@@ -161,7 +161,7 @@ class tournament {
         $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name, $link);
 
-        $query = "SELECT name,tid from " . $db_prefix . "tournament WHERE DATE_FORMAT(date,'%Y')=$year";
+        $query = "SELECT NAME,ID from " . $db_prefix . "tournament WHERE DATE_FORMAT(date,'%Y')=$year";
         $result = mysql_query($query);
 
         while ($row = mysql_fetch_array($result)) {

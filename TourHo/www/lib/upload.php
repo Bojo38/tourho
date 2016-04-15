@@ -1,5 +1,5 @@
 <?php
-require_once 'settings.php';
+require_once '../include/settings.php';
 require_once 'lib/class_tournament.php';
 require_once 'lib/class_coach.php';
 require_once 'lib/class_round.php';
@@ -29,7 +29,7 @@ $coaches=array();
 $current_round_number=0;
 $current_round=null;
 $teid=-1;
-
+/*
 // Fonction associée à l’événement début d’élément
 function startElement($parser, $name, $attrs) {
     global $depth;
@@ -124,14 +124,8 @@ function startElement($parser, $name, $attrs) {
             }
         }
     }
-
-   /* print "Début de l'élément : ".$name."\n -- ";
-    print "profondeur : ".$depth[$parser]." -- Attributs de l'élément : ";
-*/
 //affichage des attributs de l'élément
-  /*  while (list ($key, $val) = each ($attrs)) {echo "$key => $val";}
-    print " ";*/    
-
+ 
 }
 
 // Fonction associée à l’événement fin d’élément
@@ -161,10 +155,6 @@ function endElement($parser, $name) {
     if ($name=='TEAM') {
         $teid=-1;
     }
-   /* for ($i = 0; $i < $depth[$parser]-1; $i++) {print " ";}
-    print "Fin de l'élément : ".$name." avec la valeur :".$globaldata." -- ";
-
-    print "profondeur : ".$depth[$parser]." ";*/
 
     $depth[$parser]--;
 
@@ -174,11 +164,8 @@ function endElement($parser, $name) {
 
 // Fonction associée à l’événement données textuelles
 function characterData($parser, $data) {
-
     global $globaldata;
-
     $globaldata = $data;
-
 }
 
 // Fonction associée à l’événement de détection d'un appel d'entité externe
@@ -233,28 +220,47 @@ function new_xml_parser($file) {
     xml_set_element_handler($xml_parser, "startElement", "endElement");
     xml_set_character_data_handler($xml_parser, "characterData");
     xml_set_external_entity_ref_handler($xml_parser, "externalEntityRefHandler");
-
+    
     //Ouverture du fichier
-    if (!($fp = @fopen($file, "r"))) { echo "fichier non trouvé";return FALSE; }
+    if (!($fp = @fopen($file, "r"))) 
+    { 
+        echo "fichier non trouvé";
+        return FALSE;         
+    }
+    
+ 
+    
     //Transformation du parseur en un tableau
-    if (!is_array($parser_file)) { settype($parser_file, "array"); }
+    if (!is_array($parser_file)) 
+        { 
+            settype($parser_file, "array");             
+        }
     $parser_file[$xml_parser] = $file;
 
     return array($xml_parser, $fp);
 
-}
+}*/
 
 
 function upload_file($filename) {
     $status = true;
 
-    $savepath=$_SERVER["DOCUMENT_ROOT"].'/tourho/tmp/';
+    $savepath=$_SERVER["DOCUMENT_ROOT"].'tmp/';
     if  ($filename['type']=="text/xml") {
-
+        
     // Appel à la fonction de création et d'initialisation du parseur
-        if (!(list($xml_parser, $fp) = new_xml_parser($filename['tmp_name']))) { die("Impossible d'ouvrir le document XML"); }
+        //if (!(list($xml_parser, $fp) = new_xml_parser($filename['tmp_name']))) { die("Impossible d'ouvrir le document XML"); }
+        //
+        
+        if (file_exists($filename)) {
+            $xml = simplexml_load_file($filename);
+            print_r($xml);
+        } else {
+            exit('Echec lors de l\'ouverture du fichier XML.');
+        }
+        
         // Traitement de la ressource XML
-        while ($data = fread($fp, 4096)) {
+       /* while ($data = fread($fp, 4096)) {
 
             if (!xml_parse($xml_parser, $data, feof($fp))) { die(sprintf("Erreur XML : %s à la ligne %d\n",
                     xml_error_string(xml_get_error_code($xml_parser)),
@@ -263,7 +269,7 @@ function upload_file($filename) {
         }
 
         // Libération de la ressource associée au parser
-        xml_parser_free($xml_parser);
+        xml_parser_free($xml_parser);*/
     }
 
     echo "<br><br>";
