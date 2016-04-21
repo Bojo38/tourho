@@ -30,18 +30,82 @@ class match {
         mysql_close($link);
     }
     //put your code here
-    public static function add($rid,$cid1,$cid2,$td1,$td2,$sor1,$sor2,$foul1,$foul2)
+    public static function addValue($cm,$name,$value1,$value2)
     {
          global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
 
        $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
        mysql_select_db($db_name,$link);
 
-       $query="INSERT INTO `$db_name`.`".$db_prefix."match` (`mid` ,`f_rid`,`f_cid1`,`f_cid2` ,`td1` ,`td2` ,`cas1` ,`cas2` ,`foul1`,`foul2`)VALUES ('', '$rid', '$cid1', '$cid2', '$td1', '$td2', '$sor1','$sor2','$foul1','$foul2');";
+       $query="INSERT INTO `$db_name`.`".$db_prefix."CoachValue` "
+               . "(`CoachMatch_idCoachMatch` ,`CriteriaName`,`Value1`,`Value2`)"
+               . "VALUES ('".$cm."', '".$name."', '".$value1."','".$value2."');";
+       
+       echo $query."<br>";
+       
        $result=mysql_query($query);
        $id=mysql_insert_id ($link);
         mysql_close($link);
         return $id;
     }
+    
+    
+    //put your code here
+    public static function addCoachMatch($tid,$rid,$cname1,$cname2,$rf1,$rf2,$cc1,$cc2,$tmid)
+    {
+         global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
+
+       $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
+       mysql_select_db($db_name,$link);
+
+       $cid1='';
+       
+       $result=mysql_query("SELECT idCoach from Coach where Tournament_idTournament=".$tid." AND Name='".$cname1."'");
+       if ($result)
+       {
+        $cid1=mysql_result($result, 0);
+       }
+       
+       $cid2='';
+       
+       $result=mysql_query("SELECT idCoach from Coach where Tournament_idTournament=".$tid." AND Name='".$cname2."'");
+       if ($result)
+       {
+        $cid2=mysql_result($result, 0);
+       }
+       
+       $query="INSERT INTO `$db_name`.`".$db_prefix."CoachMatch` "
+               . "(`Round_idRound` ,`Coach1_idCoach`,`Coach2_idCoach`,"
+               . "`RefusedBy1` ,`RefusedBy2` ,`ConceededBy1` ,`ConceededBy2` ,"
+               . "`TeamMatch_idTeamMatch`)"
+               . "VALUES ('".$rid."', '".$cid1."', '".$cid2."', '".$rf1."', '".$rf2."', '".$cc1."', '".$cc2."','".$tmid."');";
+       
+       $result=mysql_query($query);
+       $id=mysql_insert_id ($link);
+        mysql_close($link);
+        return $id;
+    }
+    
+   /* public static function addCoachMatchValue($tid,$rid,$coachName)
+    {
+         global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
+
+       $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
+       mysql_select_db($db_name,$link);
+
+       $cid='';
+       echo "SELECT idCoach from Coach where Tournament_idTournament=".$tid." AND Name='".$coachName."'";
+       $result=mysql_query("SELECT idCoach from Coach where Tournament_idTournament=".$tid." AND Name='".$coachName."'");
+       if ($result)
+       {
+        $cid=mysql_result($result, 0);
+       }
+       
+       $query="INSERT INTO `$db_name`.`".$db_prefix."CoachMatchValue` (`Round_idRound` ,`Cooach_idCoach`)VALUES ('".$rid."', '".$cid1."');";
+       $result=mysql_query($query);
+       $id=mysql_insert_id ($link);
+        mysql_close($link);
+        return $id;
+    }*/
 }
 ?>

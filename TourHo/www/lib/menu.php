@@ -10,7 +10,7 @@ function generate_menu() {
             <ul id=\"nav\" class=\"dropdown dropdown-horizontal\">
                 <li><a href=\"index.php?upload=html\">Charger un tournoi....</a></li>";
     foreach ($years as $key => $value) {
-        print "<li><span class=\"dir\">Ann&eacute;e $key</span>";
+        print "<li><span class=\"dir\">$key</span>";
         $tours=tournament::getToursByYear($key);
         print "<ul>";
         foreach ($tours as $keyt => $valuet) {

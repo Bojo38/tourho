@@ -102,37 +102,19 @@ class tournament {
         return $list;
     }
 
-    public static function add($name, $orgas, $date, $place,
-        $large_victory, $victory, $draw, $little_lost, $lost,
-        $rank1, $rank2, $rank3, $rank4, $rank5,
-        $td_pos, $td_neg, $foul_pos, $foul_neg, $cas_pos, $cas_neg,
-        $victory_team, $draw_team, $lost_team,
-        $rank1_team, $rank2_team, $rank3_team, $rank4_team, $rank5_team,
-        $td_pos_team, $td_neg_team, $foul_pos_team, $foul_neg_team, $cas_pos_team, $cas_neg_team,
-        $team_tournament, $team_mates_number, $team_pairing, $indiv_pairing, $team_victory_points, $team_victory_only) {
+    public static function add($name, $date, $place) {
 
         global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
 
         $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name, $link);
-
+       
         $query = "INSERT INTO `$db_name`.`" . $db_prefix . "tournament`
-        (`tid` ,`date` ,`name` ,`orgas` ,`place` ,
-        `rank1` ,`rank2` ,`rank3` ,`rank4` ,`rank5` ,
-        `large_victory` ,`victory` ,`draw` ,`little_lost` ,`lost` ,
-        `td_pos` ,`td_neg` ,`foul_pos` ,`foul_neg` ,`cas_pos` ,`cas_neg`,
-        `rank1_team` ,`rank2_team` ,`rank3_team` ,`rank4_team` ,`rank5_team` ,
-        `victory_team` ,`draw_team` ,`lost_team` ,
-        `td_pos_team` ,`td_neg_team` ,`foul_pos_team` ,`foul_neg_team` ,`cas_pos_team` ,`cas_neg_team`,
-        `team_tournament`, `team_mates_number`, `team_pairing`, `indiv_pairing`, `team_victory_points`, `team_victory_only`)
-        VALUES ('', str_to_date('$date','%d/%m/%Y'), '" . addslashes($name) . "', '" . addslashes($orgas) . "', '" . addslashes($place) . "',
-        '$rank1', '$rank2', '$rank3', '$rank4', '$rank5',
-        '$large_victory', '$victory', '$draw', '$little_lost', '$lost',
-        '$td_pos', '$td_neg', '$foul_pos', '$foul_neg', '$cas_pos', '$cas_neg',
-        '$rank1_team', '$rank2_team', '$rank3_team', '$rank4_team', '$rank5_team',
-        '$victory_team', '$draw_team', '$lost_team',
-        '$td_pos_team', '$td_neg_team', '$foul_pos_team', '$foul_neg_team', '$cas_pos_team', '$cas_neg_team',
-        '$team_tournament', '$team_mates_number', '$team_pairing', '$indiv_pairing', '$team_victory_points', '$team_victory_only');";
+        (`dDate` ,`Name` ,`Place`)
+        VALUES (str_to_date('$date','%d/%m/%Y'), '" . addslashes($name) . "', '" .addslashes($place) . "');";
+        
+        echo $query."<br>";
+        
         $result = mysql_query($query);
         $id = mysql_insert_id($link);
         mysql_close($link);
@@ -145,7 +127,7 @@ class tournament {
         $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name, $link);
 
-        $query = "SELECT DATE_FORMAT(date,'%Y') from " . $db_prefix . "tournament";
+        $query = "SELECT DATE_FORMAT(dDate,'%Y') from " . $db_prefix . "tournament";
         $result = mysql_query($query);
 
         while ($row = mysql_fetch_array($result)) {
@@ -161,7 +143,7 @@ class tournament {
         $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name, $link);
 
-        $query = "SELECT NAME,ID from " . $db_prefix . "tournament WHERE DATE_FORMAT(date,'%Y')=$year";
+        $query = "SELECT Name,idTournament from " . $db_prefix . "tournament WHERE DATE_FORMAT(dDate,'%Y')=$year";
         $result = mysql_query($query);
 
         while ($row = mysql_fetch_array($result)) {

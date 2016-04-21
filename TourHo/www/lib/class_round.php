@@ -33,14 +33,14 @@ class round {
         mysql_close($link);
     }
     //put your code here
-    public static function add($date,$tid,$type,$number)
+    public static function add($tid,$date)
     {
          global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
 
        $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
        mysql_select_db($db_name,$link);
 
-       $query="INSERT INTO `$db_name`.`".$db_prefix."round` (`rid` ,`f_tid` ,`number` ,`type` ,`date` )VALUES ('', '$tid', '$number', '$type', str_to_date('$date','%d/%m/%Y %H:%i:%s'));";
+       $query="INSERT INTO `$db_name`.`".$db_prefix."Round` (`Tournament_idTournament` ,`dDate` )VALUES ('".$tid."',str_to_date('$date','%d/%m/%Y %H:%i:%s'));";
        
        $result=mysql_query($query);
         $id=mysql_insert_id ($link);

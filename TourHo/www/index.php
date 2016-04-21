@@ -11,7 +11,8 @@ require 'lib/tournament.php';
         <link rel="stylesheet" href="css/lib.css" type="text/css">
         <title>R&eacute;sultats de tournois</title>
     </head>
-    <body>        
+    <body>
+
         <div id="titre">R&eacute;sultats de tournois</div><br>
         <?php
         generate_menu();
@@ -20,7 +21,7 @@ require 'lib/tournament.php';
             if ($_GET['upload'] == 'html') {
                 upload_html();
             }
-            if ($_GET['upload'] == 'action') {
+            if ($_GET['upload'] == 'action') {             
                 upload_file($_FILES['userfile']);
             }
         }

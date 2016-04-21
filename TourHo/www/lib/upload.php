@@ -1,5 +1,9 @@
 <?php
+
 require_once '../include/settings.php';
+require_once 'lib/class_clan.php';
+require_once 'lib/class_settings.php';
+require_once 'lib/class_criteria.php';
 require_once 'lib/class_tournament.php';
 require_once 'lib/class_coach.php';
 require_once 'lib/class_round.php';
@@ -21,255 +25,349 @@ $depth = array();
 // Etat de la pile de parcours du document XML
 $stack = array();
 // Valeur d'un dernier élément lu
-$globaldata ="";
+$globaldata = "";
 
-$tournament_open=false;
-$current_tournament=0;
-$coaches=array();
-$current_round_number=0;
-$current_round=null;
-$teid=-1;
-/*
-// Fonction associée à l’événement début d’élément
-function startElement($parser, $name, $attrs) {
-    global $depth;
-    global $stack;
-    global $current_tournament;
-    global $coaches;
-    global $current_round_number;
-    global $current_round;
-    global $teid;
+$tournament_open = false;
+$current_tournament = 0;
+$coaches = array();
+$current_round_number = 0;
+$current_round = null;
+$teid = -1;
 
-    for ($i = 0; $i < $depth[$parser]; $i++) {print " ";}
-    array_push($stack,$name);
+function fill_database_from_xml(SimpleXMLElement $xml) {
 
-    $depth[$parser]++;
+    foreach ($xml->children() as $element) {
+        if ($element->getName() == "Parameters") {
+            //print_r($element->attributes());
+            $attr = $element->attributes();
+            $tid = tournament::add($attr['Name'], $attr['Date'], $attr['Place']);
 
-    if ($name=='TOURNAMENT') {
-        $tournament_open=true;
-    }
-    if ($name=='PARAMETERS') {
-        $id=tournament::add($attrs['NAME'],$attrs['ORGANIZER'],$attrs['DATE'],$attrs['PLACE'],
-            $attrs['LARGE_VICTORY'],$attrs['VICTORY'],$attrs['DRAW'],$attrs['LITTLE_LOST'],$attrs['LOST'],
-            $attrs['RANK1'],$attrs['RANK2'],$attrs['RANK3'],$attrs['RANK4'],$attrs['RANK5'],
-            $attrs['BONUS_POS_TD'],$attrs['BONUS_NEG_TD'],$attrs['BONUS_POS_FOUL'],$attrs['BONUS_NEG_FOUL'], $attrs['BONUS_POS_SOR'],$attrs['BONUS_NEG_SOR'],
-            $attrs['VICTORY_TEAM'],$attrs['DRAW_TEAM'],$attrs['LOST_TEAM'],
-            $attrs['RANK1_TEAM'],$attrs['RANK2_TEAM'],$attrs['RANK3_TEAM'],$attrs['RANK4_TEAM'],$attrs['RANK5_TEAM'],
-            $attrs['BONUS_POS_TD_TEAM'],$attrs['BONUS_NEG_TD_TEAM'],$attrs['BONUS_POS_FOUL_TEAM'],$attrs['BONUS_NEG_FOUL_TEAM'], $attrs['BONUS_POS_SOR_TEAM'],$attrs['BONUS_NEG_SOR_TEAM'],
-            $attrs['BYTEAM']=='true',
-            $attrs['TEAMMATES'],
-            $attrs['TEAMPAIRING'],
-            $attrs['TEAMINDIVPAIRING'],
-            $attrs['TEAMVICTORYPOINTS'],
-            $attrs['TEAMVICTORYONLY']=='true');
+            print_r($attr);
 
-        if ($id>=0) {
-            $current_tournament=new tournament($id);
-            print "PARAMETERS: Upload complete - ".$attrs['NAME']."<br>";
-        }
-        else {
-            $current_tournament=null;
-        }
-    }
+            $sid = settings::add($tid, $attr['Victory'], $attr['Large_Victory'], $attr['Draw'], $attr['Lost'], $attr['Little_Lost'], $attr['Refused'], $attr['Conceeded'], $attr['Victory_Team'], $attr['Draw_Team'], $attr['Lost_Team'], $attr['Large_Victory_Gap'], $attr['Little_Lost_Gap'], $attr['Rank1'], $attr['Rank2'], $attr['Rank3'], $attr['Rank4'], $attr['Rank5'], $attr['Rank_Team1'], $attr['Rank_Team2'], $attr['Rank_Team3'], $attr['Rank_Team4'], $attr['Rank_Team5'], $attr['ByTeam'], $attr['TeamMates'], $attr['TeamPairing'], $attr['TeamIndivPairing'], $attr['TeamVictoryPoints'], $attr['TeamDrawPoints'], $attr['TeamVictoryOnly'], $attr['GroupEnable'], $attr['Substitutes'], $attr['GameType'], $attr['ActvateClans'], $attr['AvoidFirstMatch'], $attr['AvoidMatch'], $attr['ClanTeammatesNumber'], $attr['MultiRoster'], $attr['IndivBalanced'], $attr['TeamBalanced'], $attr['UseLargeVictory'], $attr['UseLittleLost'], $attr['TableBonus'], $attr['TableBonusPerRound'], $attr['TableBonusCoef'], $attr['UseBestResultIndiv'], $attr['UseBestResultTeam'], $attr['BestResultIndiv'], $attr['BestReasultTeam'], $attr['ApplyToAnnexTeam'], $attr['ApplyToAnnexIndiv'], $attr['ExceptBestAndWorstIndiv'], $attr['ExceptBestAndWorstTeam']);
 
-    if ($name=='TEAM') {
-        if ($current_tournament!=null) {
-            $teid=team::add($attrs['NAME'],$current_tournament->tid);
-            $teams[$attrs['NAME']]=$teid;
-            if ($teid>=0) {
-                print "TEAM: Upload complete - ".$attrs['NAME']."<br>";
+            foreach ($element->children() as $criteria) {
+                $attr_c=$criteria->attributes();
+                //print_r($attr_c);
+                $cid= criteria::add($tid,$sid,$attr_c['Criteria'],$attr_c['PointsFor'],$attr_c['PointsAgainst'],$attr_c['PointsTeamFor'],$attr_c['PointsTeamAgainst']);
             }
         }
-    }
-
-    if ($name=='COACH') {
-        if ($current_tournament!=null) {
-            if ($teid>=0) {
-                coach::affect_team($attrs['NAME'],$current_tournament->tid,$teid);
-            }
-            else {
-                $cid=coach::add($attrs['NAME'],$current_tournament->tid, $attrs['TEAM'],$attrs['ROSTER'],$attrs['NAF'],$attrs['RANK']);
-                $coaches[$attrs['NAME']]=$cid;
-                if ($cid>=0) {
-                    print "COACH: Upload complete - ".$attrs['NAME']."<br>";
+        
+        if ($element->getName()=="Clan")
+        {
+            $attr = $element->attributes();            
+            $pic='';
+            foreach($element->children() as $picture)
+            {
+                if ($picture->getName()=="Picture")
+                {
+                       $pic=$picture->__toString();
                 }
             }
+            clan::add($tid,$attr['Name'],$pic);
+        }
+        
+        if ($element->getName()=="Coach")
+        {
+            $attr = $element->attributes();            
+            $pic='';
+            foreach($element->children() as $picture)
+            {
+                if ($picture->getName()=="Picture")
+                {
+                       $pic=$picture->__toString();
+                }
+            }
+            coach::add($tid,$attr['Name'],$attr['Team'],$attr['Roster'],$attr['NAF'],$attr['Rank'],$attr['Handicap'],$pic,$attr['Clan'],$attr['TeamMates']);
+        }
+        
+        if ($element->getName()=="Round")
+        {
+            $attr = $element->attributes();            
 
+            //print_r($attr);
+            
+            $rid=round::add($tid,$attr['Date']);
+            
+            foreach($element->children() as $match)
+            {
+                // Detects if CoachMatch or TeamMatch
+                $attr_m=$match->attributes();
+                
+                if (array_key_exists('Team1',$attr_m))
+                {
+                     // Team Match   
+                }
+                else
+                {
+                    // Coach Match
+                    if ($match->getName()=='Match')
+                    {
+                        //print_r($attr_m);
+                        
+                        // Insert Match
+                        $mid=match::addCoachMatch($tid,$rid,$attr_m['Coach1'],$attr_m['Coach2'],$attr_m['RefusedBy1'],$attr_m['RefusedBy2'],$attr_m['ConceededBy1'],$attr_m['ConceededBy2'],'');
+                        
+                        //print_r($match);
+                        
+                        // Insert values
+                        foreach($match->children() as $value)
+                        {
+                            $attr_v=$value->attributes();
+                            print_r($value);
+                            $value=match::addValue($mid,$attr_v['Name'],$attr_v['Value1'],$attr_v['Value2']);
+                        }
+                    }
+                        
+                }
+                
+            }
+            
         }
     }
-
-    if ($name=='ROUND') {
-        if ($current_tournament!=null) {
-            $current_round_number++;
-            $rid=round::add($attrs['DATE'],$current_tournament->tid,'',$current_round_number);
-            if ($rid>=0) {
-                $current_round=new round($rid);
-                print "ROUND: Upload complete - $current_round_number<br>";
-            }
-            else {
-                $current_round=null;
-            }
-        }
-    }
-
-    if ($name=='MATCH') {
-        if ($current_round!=null) {
-            $mid=match::add($current_round->rid,
-                $coaches[$attrs['COACH1']],$coaches[$attrs['COACH2']],
-                $attrs['TD1'],$attrs['TD2'],
-                $attrs['SOR1'],$attrs['SOR2'],
-                $attrs['FOUL1'],$attrs['FOUL2']);
-            if ($mid>=0) {
-                print "MATCH: Upload complete - round ".$current_round_number." ".$attrs['COACH1']." vs ".$attrs['COACH2']."<br>";
-            }
-        }
-    }
-//affichage des attributs de l'élément
- 
 }
 
-// Fonction associée à l’événement fin d’élément
-function endElement($parser, $name) {
+/*
+  // Fonction associée à l’événement début d’élément
+  function startElement($parser, $name, $attrs) {
+  global $depth;
+  global $stack;
+  global $current_tournament;
+  global $coaches;
+  global $current_round_number;
+  global $current_round;
+  global $teid;
 
-    global $depth;
-    global $stack;
-    global $globaldata;
-    global $current_tournament;
-    global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
-    global $teid;
+  for ($i = 0; $i < $depth[$parser]; $i++) {print " ";}
+  array_push($stack,$name);
 
-    if ($name=='TOURNAMENT') {
-        $tournament_open=false;
+  $depth[$parser]++;
 
-        $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
-        mysql_select_db($db_name,$link);
-        $query="SELECT date from ".$db_prefix."round where f_tid=$current_tournament->tid order by date";
-        $result=mysql_query($query);
-        $r = mysql_fetch_assoc($result);
-        $query="UPDATE `".$db_prefix."tournament` SET `date` = '".$r['date']."' WHERE `tid` =$current_tournament->tid ";
-        $result=mysql_query($query);
+  if ($name=='TOURNAMENT') {
+  $tournament_open=true;
+  }
+  if ($name=='PARAMETERS') {
+  $id=tournament::add($attrs['NAME'],$attrs['ORGANIZER'],$attrs['DATE'],$attrs['PLACE'],
+  $attrs['LARGE_VICTORY'],$attrs['VICTORY'],$attrs['DRAW'],$attrs['LITTLE_LOST'],$attrs['LOST'],
+  $attrs['RANK1'],$attrs['RANK2'],$attrs['RANK3'],$attrs['RANK4'],$attrs['RANK5'],
+  $attrs['BONUS_POS_TD'],$attrs['BONUS_NEG_TD'],$attrs['BONUS_POS_FOUL'],$attrs['BONUS_NEG_FOUL'], $attrs['BONUS_POS_SOR'],$attrs['BONUS_NEG_SOR'],
+  $attrs['VICTORY_TEAM'],$attrs['DRAW_TEAM'],$attrs['LOST_TEAM'],
+  $attrs['RANK1_TEAM'],$attrs['RANK2_TEAM'],$attrs['RANK3_TEAM'],$attrs['RANK4_TEAM'],$attrs['RANK5_TEAM'],
+  $attrs['BONUS_POS_TD_TEAM'],$attrs['BONUS_NEG_TD_TEAM'],$attrs['BONUS_POS_FOUL_TEAM'],$attrs['BONUS_NEG_FOUL_TEAM'], $attrs['BONUS_POS_SOR_TEAM'],$attrs['BONUS_NEG_SOR_TEAM'],
+  $attrs['BYTEAM']=='true',
+  $attrs['TEAMMATES'],
+  $attrs['TEAMPAIRING'],
+  $attrs['TEAMINDIVPAIRING'],
+  $attrs['TEAMVICTORYPOINTS'],
+  $attrs['TEAMVICTORYONLY']=='true');
 
-        print "DONE.";
-    }
+  if ($id>=0) {
+  $current_tournament=new tournament($id);
+  print "PARAMETERS: Upload complete - ".$attrs['NAME']."<br>";
+  }
+  else {
+  $current_tournament=null;
+  }
+  }
 
-    if ($name=='TEAM') {
-        $teid=-1;
-    }
+  if ($name=='TEAM') {
+  if ($current_tournament!=null) {
+  $teid=team::add($attrs['NAME'],$current_tournament->tid);
+  $teams[$attrs['NAME']]=$teid;
+  if ($teid>=0) {
+  print "TEAM: Upload complete - ".$attrs['NAME']."<br>";
+  }
+  }
+  }
 
-    $depth[$parser]--;
+  if ($name=='COACH') {
+  if ($current_tournament!=null) {
+  if ($teid>=0) {
+  coach::affect_team($attrs['NAME'],$current_tournament->tid,$teid);
+  }
+  else {
+  $cid=coach::add($attrs['NAME'],$current_tournament->tid, $attrs['TEAM'],$attrs['ROSTER'],$attrs['NAF'],$attrs['RANK']);
+  $coaches[$attrs['NAME']]=$cid;
+  if ($cid>=0) {
+  print "COACH: Upload complete - ".$attrs['NAME']."<br>";
+  }
+  }
 
-    array_pop($stack);
+  }
+  }
 
-}
+  if ($name=='ROUND') {
+  if ($current_tournament!=null) {
+  $current_round_number++;
+  $rid=round::add($attrs['DATE'],$current_tournament->tid,'',$current_round_number);
+  if ($rid>=0) {
+  $current_round=new round($rid);
+  print "ROUND: Upload complete - $current_round_number<br>";
+  }
+  else {
+  $current_round=null;
+  }
+  }
+  }
 
-// Fonction associée à l’événement données textuelles
-function characterData($parser, $data) {
-    global $globaldata;
-    $globaldata = $data;
-}
+  if ($name=='MATCH') {
+  if ($current_round!=null) {
+  $mid=match::add($current_round->rid,
+  $coaches[$attrs['COACH1']],$coaches[$attrs['COACH2']],
+  $attrs['TD1'],$attrs['TD2'],
+  $attrs['SOR1'],$attrs['SOR2'],
+  $attrs['FOUL1'],$attrs['FOUL2']);
+  if ($mid>=0) {
+  print "MATCH: Upload complete - round ".$current_round_number." ".$attrs['COACH1']." vs ".$attrs['COACH2']."<br>";
+  }
+  }
+  }
+  //affichage des attributs de l'élément
 
-// Fonction associée à l’événement de détection d'un appel d'entité externe
-function externalEntityRefHandler($parser,
-    $openEntityNames,
-    $base,
-    $systemId,
-    $publicId) {
+  }
 
-    if ($systemId) { if (!list($parser, $fp) = new_xml_parser($systemId)) {
+  // Fonction associée à l’événement fin d’élément
+  function endElement($parser, $name) {
 
-            printf("Impossible d'ouvrir %s à %s\n",
-                $openEntityNames,
-                $systemId);
-            return FALSE;
+  global $depth;
+  global $stack;
+  global $globaldata;
+  global $current_tournament;
+  global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
+  global $teid;
 
-        }
+  if ($name=='TOURNAMENT') {
+  $tournament_open=false;
 
-        while ($data = fread($fp, 4096)) {
+  $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
+  mysql_select_db($db_name,$link);
+  $query="SELECT date from ".$db_prefix."round where f_tid=$current_tournament->tid order by date";
+  $result=mysql_query($query);
+  $r = mysql_fetch_assoc($result);
+  $query="UPDATE `".$db_prefix."tournament` SET `date` = '".$r['date']."' WHERE `tid` =$current_tournament->tid ";
+  $result=mysql_query($query);
 
-            if (!xml_parse($parser, $data, feof($fp))) {
+  print "DONE.";
+  }
 
-                printf("Erreur XML : %s à la ligne %d lors du traitement de l'entité %s\n",
-                    xml_error_string(xml_get_error_code($parser)),
-                    xml_get_current_line_number($parser),
-                    $openEntityNames);
+  if ($name=='TEAM') {
+  $teid=-1;
+  }
 
-                xml_parser_free($parser);
+  $depth[$parser]--;
 
-                return FALSE;
+  array_pop($stack);
 
-            }
+  }
 
-        }
+  // Fonction associée à l’événement données textuelles
+  function characterData($parser, $data) {
+  global $globaldata;
+  $globaldata = $data;
+  }
 
-        xml_parser_free($parser);
+  // Fonction associée à l’événement de détection d'un appel d'entité externe
+  function externalEntityRefHandler($parser,
+  $openEntityNames,
+  $base,
+  $systemId,
+  $publicId) {
 
-        return TRUE; } return FALSE;
+  if ($systemId) { if (!list($parser, $fp) = new_xml_parser($systemId)) {
 
-}
+  printf("Impossible d'ouvrir %s à %s\n",
+  $openEntityNames,
+  $systemId);
+  return FALSE;
 
-// Fonction de création du parser et d'affectation
-// des fonctions aux gestionnaires d'événements
-function new_xml_parser($file) {
+  }
 
-    global $parser_file;
-    //création du parseur
-    $xml_parser = xml_parser_create();
-    //Activation du respect de la casse du nom des éléments XML
-    xml_parser_set_option($xml_parser, XML_OPTION_CASE_FOLDING, 1);
-    //Déclaration des fonctions à rattacher au gestionnaire d'événement
-    xml_set_element_handler($xml_parser, "startElement", "endElement");
-    xml_set_character_data_handler($xml_parser, "characterData");
-    xml_set_external_entity_ref_handler($xml_parser, "externalEntityRefHandler");
-    
-    //Ouverture du fichier
-    if (!($fp = @fopen($file, "r"))) 
-    { 
-        echo "fichier non trouvé";
-        return FALSE;         
-    }
-    
- 
-    
-    //Transformation du parseur en un tableau
-    if (!is_array($parser_file)) 
-        { 
-            settype($parser_file, "array");             
-        }
-    $parser_file[$xml_parser] = $file;
+  while ($data = fread($fp, 4096)) {
 
-    return array($xml_parser, $fp);
+  if (!xml_parse($parser, $data, feof($fp))) {
 
-}*/
+  printf("Erreur XML : %s à la ligne %d lors du traitement de l'entité %s\n",
+  xml_error_string(xml_get_error_code($parser)),
+  xml_get_current_line_number($parser),
+  $openEntityNames);
 
+  xml_parser_free($parser);
+
+  return FALSE;
+
+  }
+
+  }
+
+  xml_parser_free($parser);
+
+  return TRUE; } return FALSE;
+
+  }
+
+  // Fonction de création du parser et d'affectation
+  // des fonctions aux gestionnaires d'événements
+  function new_xml_parser($file) {
+
+  global $parser_file;
+  //création du parseur
+  $xml_parser = xml_parser_create();
+  //Activation du respect de la casse du nom des éléments XML
+  xml_parser_set_option($xml_parser, XML_OPTION_CASE_FOLDING, 1);
+  //Déclaration des fonctions à rattacher au gestionnaire d'événement
+  xml_set_element_handler($xml_parser, "startElement", "endElement");
+  xml_set_character_data_handler($xml_parser, "characterData");
+  xml_set_external_entity_ref_handler($xml_parser, "externalEntityRefHandler");
+
+  //Ouverture du fichier
+  if (!($fp = @fopen($file, "r")))
+  {
+  echo "fichier non trouvé";
+  return FALSE;
+  }
+
+
+
+  //Transformation du parseur en un tableau
+  if (!is_array($parser_file))
+  {
+  settype($parser_file, "array");
+  }
+  $parser_file[$xml_parser] = $file;
+
+  return array($xml_parser, $fp);
+
+  } */
 
 function upload_file($filename) {
     $status = true;
 
-    $savepath=$_SERVER["DOCUMENT_ROOT"].'tmp/';
-    if  ($filename['type']=="text/xml") {
-        
-    // Appel à la fonction de création et d'initialisation du parseur
+    $savepath = $_SERVER["DOCUMENT_ROOT"] . '/tmp/';
+    if ($filename['type'] == "text/xml") {
+
+        // Appel à la fonction de création et d'initialisation du parseur
         //if (!(list($xml_parser, $fp) = new_xml_parser($filename['tmp_name']))) { die("Impossible d'ouvrir le document XML"); }
-        //
-        
-        if (file_exists($filename)) {
-            $xml = simplexml_load_file($filename);
-            print_r($xml);
+
+        if (file_exists($filename['tmp_name'])) {
+            $xml = simplexml_load_file($filename['tmp_name']);
+            //print_r($xml);
+
+            fill_database_from_xml($xml);
         } else {
             exit('Echec lors de l\'ouverture du fichier XML.');
         }
-        
+
         // Traitement de la ressource XML
-       /* while ($data = fread($fp, 4096)) {
+        /* while ($data = fread($fp, 4096)) {
 
-            if (!xml_parse($xml_parser, $data, feof($fp))) { die(sprintf("Erreur XML : %s à la ligne %d\n",
-                    xml_error_string(xml_get_error_code($xml_parser)),
-                    xml_get_current_line_number($xml_parser)));
-            }
-        }
+          if (!xml_parse($xml_parser, $data, feof($fp))) { die(sprintf("Erreur XML : %s à la ligne %d\n",
+          xml_error_string(xml_get_error_code($xml_parser)),
+          xml_get_current_line_number($xml_parser)));
+          }
+          }
 
-        // Libération de la ressource associée au parser
-        xml_parser_free($xml_parser);*/
+          // Libération de la ressource associée au parser
+          xml_parser_free($xml_parser); */
     }
 
     echo "<br><br>";
@@ -277,6 +375,6 @@ function upload_file($filename) {
     echo "<form enctype='multipart/form-data' action='index.php' method='POST'>
                     <input type='submit' value='Retour' />
                 </form>";
-
 }
+
 ?>

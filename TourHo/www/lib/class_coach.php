@@ -31,14 +31,31 @@ public $cid=0;
         mysql_close($link);
     }
     //put your code here
-    public static function add($name,$tid,$team,$roster,$naf,$rank)
+    public static function add($tid,$name,$team,$roster,$naf,$rank,$handicap,$pic,$clan,$teammates)
     {
          global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
 
        $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
        mysql_select_db($db_name,$link);
 
-       $query="INSERT INTO `$db_name`.`".$db_prefix."coach` (`cid` ,`f_tid`,`name` ,`team` ,`race` ,`NAF` ,`rank`)VALUES ('', '$tid', '".addslashes($name)."', '".addslashes($team)."', '".addslashes($roster)."', '$naf', '$rank');";
+       $cid='';
+       $result=mysql_query("SELECT idClan from Clan where Tournament_idTournament=".$tid." AND Name='".$clan."'");
+       if ($result)
+       {
+        $cid=mysql_result($result, 0);
+       }
+       
+       $tmid='';
+       $result=mysql_query("SELECT idTeam from Team where Tournament_idTournament=".$tid." AND Name='".$teammates."'");
+       if ($result)
+       {
+        $tmid=mysql_result($result, 0);
+       }
+       
+       $query="INSERT INTO `$db_name`.`".$db_prefix."coach` "
+               . "(`Tournament_idTournament` ,`Name`,`Team` ,`Roster` ,`NAF` ,`Rank` ,`Handicap`,`Picture`,`Clan_idClan`,`Team_idTeam`)"
+               . "VALUES ('".$tid."', '".addslashes($name)."', '".addslashes($team)."', '".addslashes($roster)."', '".$naf."','".$rank."','".$handicap."','"
+               .addslashes($pic)."', '".$cid."', '".$tmid."');";
       
        $result=mysql_query($query);
        $id=mysql_insert_id ($link);
