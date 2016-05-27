@@ -9,6 +9,11 @@ require_once 'lib/class_coach.php';
 require_once 'lib/class_round.php';
 require_once 'lib/class_match.php';
 require_once 'lib/class_team.php';
+require_once 'lib/class_group.php';
+require_once 'lib/class_roster.php';
+require_once 'lib/class_ranking.php';
+require_once 'lib/class_position.php';
+
 
 function upload_html() {
     echo "<br><br>";
@@ -36,93 +41,196 @@ $teid = -1;
 
 function fill_database_from_xml(SimpleXMLElement $xml) {
 
+    set_time_limit(0);
     foreach ($xml->children() as $element) {
         if ($element->getName() == "Parameters") {
             //print_r($element->attributes());
             $attr = $element->attributes();
+            
+            // Check that tournament does not exists
+            $exists= tournament::exists($attr['Name']);
+
+            if ($exists>0)
+            {
+                echo $attr['Name']." already exists<br>";
+                exit();
+            }
+            
             $tid = tournament::add($attr['Name'], $attr['Date'], $attr['Place']);
 
-            print_r($attr);
+            //print_r($attr);
 
             $sid = settings::add($tid, $attr['Victory'], $attr['Large_Victory'], $attr['Draw'], $attr['Lost'], $attr['Little_Lost'], $attr['Refused'], $attr['Conceeded'], $attr['Victory_Team'], $attr['Draw_Team'], $attr['Lost_Team'], $attr['Large_Victory_Gap'], $attr['Little_Lost_Gap'], $attr['Rank1'], $attr['Rank2'], $attr['Rank3'], $attr['Rank4'], $attr['Rank5'], $attr['Rank_Team1'], $attr['Rank_Team2'], $attr['Rank_Team3'], $attr['Rank_Team4'], $attr['Rank_Team5'], $attr['ByTeam'], $attr['TeamMates'], $attr['TeamPairing'], $attr['TeamIndivPairing'], $attr['TeamVictoryPoints'], $attr['TeamDrawPoints'], $attr['TeamVictoryOnly'], $attr['GroupEnable'], $attr['Substitutes'], $attr['GameType'], $attr['ActvateClans'], $attr['AvoidFirstMatch'], $attr['AvoidMatch'], $attr['ClanTeammatesNumber'], $attr['MultiRoster'], $attr['IndivBalanced'], $attr['TeamBalanced'], $attr['UseLargeVictory'], $attr['UseLittleLost'], $attr['TableBonus'], $attr['TableBonusPerRound'], $attr['TableBonusCoef'], $attr['UseBestResultIndiv'], $attr['UseBestResultTeam'], $attr['BestResultIndiv'], $attr['BestReasultTeam'], $attr['ApplyToAnnexTeam'], $attr['ApplyToAnnexIndiv'], $attr['ExceptBestAndWorstIndiv'], $attr['ExceptBestAndWorstTeam']);
 
             foreach ($element->children() as $criteria) {
-                $attr_c=$criteria->attributes();
+                $attr_c = $criteria->attributes();
                 //print_r($attr_c);
-                $cid= criteria::add($tid,$sid,$attr_c['Criteria'],$attr_c['PointsFor'],$attr_c['PointsAgainst'],$attr_c['PointsTeamFor'],$attr_c['PointsTeamAgainst']);
+                $cid = criteria::add($tid, $sid, $attr_c['Criteria'], $attr_c['PointsFor'], $attr_c['PointsAgainst'], $attr_c['PointsTeamFor'], $attr_c['PointsTeamAgainst']);
             }
         }
-        
-        if ($element->getName()=="Clan")
-        {
-            $attr = $element->attributes();            
-            $pic='';
-            foreach($element->children() as $picture)
-            {
-                if ($picture->getName()=="Picture")
-                {
-                       $pic=$picture->__toString();
-                }
-            }
-            clan::add($tid,$attr['Name'],$pic);
-        }
-        
-        if ($element->getName()=="Coach")
-        {
-            $attr = $element->attributes();            
-            $pic='';
-            foreach($element->children() as $picture)
-            {
-                if ($picture->getName()=="Picture")
-                {
-                       $pic=$picture->__toString();
-                }
-            }
-            coach::add($tid,$attr['Name'],$attr['Team'],$attr['Roster'],$attr['NAF'],$attr['Rank'],$attr['Handicap'],$pic,$attr['Clan'],$attr['TeamMates']);
-        }
-        
-        if ($element->getName()=="Round")
-        {
-            $attr = $element->attributes();            
 
-            //print_r($attr);
-            
-            $rid=round::add($tid,$attr['Date']);
-            
-            foreach($element->children() as $match)
-            {
-                // Detects if CoachMatch or TeamMatch
-                $attr_m=$match->attributes();
-                
-                if (array_key_exists('Team1',$attr_m))
-                {
-                     // Team Match   
+        if ($element->getName() == "Clan") {
+            $attr = $element->attributes();
+            $pic = '';
+            foreach ($element->children() as $picture) {
+                if ($picture->getName() == "Picture") {
+                    $pic = $picture->__toString();
                 }
-                else
-                {
-                    // Coach Match
-                    if ($match->getName()=='Match')
-                    {
-                        //print_r($attr_m);
-                        
-                        // Insert Match
-                        $mid=match::addCoachMatch($tid,$rid,$attr_m['Coach1'],$attr_m['Coach2'],$attr_m['RefusedBy1'],$attr_m['RefusedBy2'],$attr_m['ConceededBy1'],$attr_m['ConceededBy2'],'');
-                        
-                        //print_r($match);
-                        
-                        // Insert values
-                        foreach($match->children() as $value)
-                        {
-                            $attr_v=$value->attributes();
-                            print_r($value);
-                            $value=match::addValue($mid,$attr_v['Name'],$attr_v['Value1'],$attr_v['Value2']);
+            }
+            clan::add($tid, $attr['Name'], $pic);
+        }
+
+        if ($element->getName() == "Group") {
+            $attr = $element->attributes();
+            $gid = group::add($tid, $attr['Name']);
+            foreach ($element->children() as $roster) {
+                if ($roster->getName() == "Roster") {
+                    $attr_r = $roster->attributes();
+                    $rid = roster::add($tid, $gid, $attr_r['Name']);
+                }
+            }
+        }
+
+
+        if ($element->getName() == "Coach") {
+            $attr = $element->attributes();
+            $pic = '';
+            foreach ($element->children() as $picture) {
+                if ($picture->getName() == "Picture") {
+                    $pic = $picture->__toString();
+                }
+            }
+            coach::add($tid, $attr['Name'], $attr['Team'], $attr['Roster'], $attr['NAF'], $attr['Rank'], $attr['Handicap'], $pic, $attr['Clan'], $attr['TeamMates']);
+        }
+
+        if ($element->getName() == "Team") {
+            $attr = $element->attributes();
+            $pic = '';
+            foreach ($element->children() as $picture) {
+                if ($picture->getName() == "Picture") {
+                    $pic = $picture->__toString();
+                }
+            }
+            $team_id = Team::add($tid, $attr['Name'], $pic, $attr['Clan']);
+
+            foreach ($element->children() as $coach) {
+                if ($coach->getName() == "Coach") {
+                    $attr_c = $coach->attributes();
+                    coach::set_team_id($attr_c['Name'], $tid, $team_id);
+                }
+            }
+        }
+
+        if ($element->getName() == "Round") {
+            $attr = $element->attributes();
+            $rid = round::add($tid, $attr['Date']);
+
+            foreach ($element->children() as $child) {
+
+                // Detects if CoachMatch or TeamMatch
+                $attr_m = $child->attributes();
+
+                if ($child->getName() == "Match") {
+                    $match = $child;
+                    /*                print_r($match);
+                      echo "<br>";
+                      print_r($attr_m);
+                      echo "<br>"; */
+
+                    $is_team_match = 0;
+
+                    foreach ($attr_m as $a => $b) {
+                        if ($a == 'Team1') {
+                            $is_team_match = 1;
+                            break;
                         }
                     }
-                        
+
+                    if ($is_team_match == 1) {
+                        // Team Match   
+                        if ($match->getName() == 'Match') {
+                            $tmid = match::addTeamMatch($tid, $rid, $attr_m['Team1'], $attr_m['Team2']);
+                            foreach ($match->children() as $coachmatch) {
+                                $attr_cm = $coachmatch->attributes();
+                                // Insert Match
+                                $mid = match::addCoachMatch($tid, $rid, $attr_cm['Coach1'], $attr_cm['Coach2'], $attr_cm['RefusedBy1'], $attr_cm['RefusedBy2'], $attr_cm['ConceededBy1'], $attr_cm['ConceededBy2'], $tmid);
+
+                                //print_r($match);
+                                // Insert values
+                                foreach ($coachmatch->children() as $value) {
+                                    $attr_v = $value->attributes();
+                                    //print_r($value);
+                                    $value = match::addValue($mid, $attr_v['Name'], $attr_v['Value1'], $attr_v['Value2']);
+                                }
+                            }
+                        }
+                    } else {
+                        // Coach Match
+                        if ($match->getName() == 'Match') {
+                            //print_r($attr_m);
+                            // Insert Match
+                            $mid = match::addCoachMatch($tid, $rid, $attr_m['Coach1'], $attr_m['Coach2'], $attr_m['RefusedBy1'], $attr_m['RefusedBy2'], $attr_m['ConceededBy1'], $attr_m['ConceededBy2'], '');
+
+                            //print_r($match);
+                            // Insert values
+                            foreach ($match->children() as $value) {
+                                $attr_v = $value->attributes();
+                                //print_r($value);
+                                $value = match::addValue($mid, $attr_v['Name'], $attr_v['Value1'], $attr_v['Value2']);
+                            }
+                        }
+                    }
                 }
-                
+
+                if ($child->getName() == "Ranking") {
+                    $ranking = $child;
+                    
+                    $attr_ranking=$ranking->attributes();
+                    
+                    print_r($attr_ranking);
+                    
+                    $type='';
+                    $subtype='';
+                    $posneg=0;
+                    $criteria='';
+                    switch($attr_ranking['Name'])
+                    {
+                        case 'INDIVIDUAL':
+                            $type='INDIVIDUAL';
+                            break;
+                        case 'TEAM':
+                            $type='TEAM';
+                            break;
+                        case 'CLAN':
+                            $type='CLAN';
+                            break;
+                        case 'GROUP':
+                            $type='GROUP';
+                            break;
+                    }
+                    
+                    switch($attr_ranking['Type'])
+                    {
+                        case 'General':
+                            $subtype='GENERAL';
+                            break;
+                        default:
+                            $subtype='CRITERIA';
+                            $criteria=$attr_ranking['Type'];
+                            $posneg=($attr_ranking['Order']=='Positive');
+                    }
+                    $rankings=0;
+                    
+                    ranking::add($tid,$rid,$attr_ranking['Type'],$type,$subtype,$rankings,$criteria,$posneg);
+                    
+                    $positions=$ranking->children();
+                    foreach ($ranking->children() as $position) {
+                        $attr_rp=$position->attributes();
+                        print_r($position);
+                    }
+                    
+                }
             }
-            
         }
     }
 }

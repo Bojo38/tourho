@@ -1,0 +1,25 @@
+Remarques générales
+
+
+- Boutons jugés trop dur (spires à retirer)
+- le frein de descente n'a pas été posé.
+
+- fissure plaque de protection transparente (transport)
+
+- pas pratique de scanner l'étiquette une fois le banc fermé (solution BDD ou inverser les étapes scan et MAC finding)
+
+Manuel de maintenance => ajouter la procédure d'ajout des cartes SIM, soit faire évoluer le firmware de test pour obtenir le MSISDN.
+
+Action OAB: Passer par la traçabiltié Eolane tout au long de la production => impact logiciel banc de test et plus d'étiquette intermédiaire. Quel gain ?
+Timeout du bouton 2 plus court
+
+Identifier les raccourci clavier (par gommette de couleurs)
+
+26 tests:
+- 15  OK
+- 11 non testés
+	- 2 pas de fonction: BDD et cahier de maintenance
+	- 5 étaient OK la dernière fois mais pas de Live Intercom fonctionnel pour passer le test
+	- 1 était partiellement KO, mais pas testable car pas LI fonctionnel
+	- 2 nouvelle fonction non testable car par de LI fonctionnel
+	- 869MHz, pas de méthode de test existante

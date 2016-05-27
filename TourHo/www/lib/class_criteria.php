@@ -26,7 +26,7 @@ class criteria {
              (`Settings_idSettings`,`Settings_Tournament_idTournament`, `Name`, `Points_For`, `Points_Against`, `Points_Team_For`, `Points_Team_Against`) 
              VALUES ('".$tid."', '".$sid."', '".$name."', '". $points_for."', '". $points_against."', '".$points_team_for."', '".$points_team_against."');";
         
-         echo $query."<br>";
+   //      echo $query."<br>";
          
         $result = mysql_query($query);
         $id = mysql_insert_id($link);

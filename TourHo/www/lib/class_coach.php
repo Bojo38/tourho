@@ -39,17 +39,27 @@ public $cid=0;
        mysql_select_db($db_name,$link);
 
        $cid='';
-       $result=mysql_query("SELECT idClan from Clan where Tournament_idTournament=".$tid." AND Name='".$clan."'");
+       $result=mysql_query("SELECT idClan from clan where Tournament_idTournament=".$tid." AND Name='".$clan."'");
        if ($result)
        {
         $cid=mysql_result($result, 0);
        }
        
        $tmid='';
-       $result=mysql_query("SELECT idTeam from Team where Tournament_idTournament=".$tid." AND Name='".$teammates."'");
+//       echo "SELECT idTeam from team where Tournament_idTournament=".$tid." AND Name='".$teammates."'"."<br>";
+       $result=mysql_query("SELECT idTeam from team where Tournament_idTournament=".$tid." AND Name='".$teammates."'");
        if ($result)
        {
-        $tmid=mysql_result($result, 0);
+        $row = mysql_fetch_assoc($result);
+        if ($row)
+        {
+            $tmid=$row['idTeam'];
+        }
+        mysql_free_result($result);
+       }
+       else
+       {
+            die('Requête invalide : ' . mysql_error());
        }
        
        $query="INSERT INTO `$db_name`.`".$db_prefix."coach` "
@@ -64,14 +74,15 @@ public $cid=0;
     }
 
 
-    public static function affect_team($name,$tid,$teid)
+    public static function set_team_id($name,$tid,$teid)
     {
          global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
 
        $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
        mysql_select_db($db_name,$link);
 
-       $query="UPDATE `$db_name`.`".$db_prefix."coach` SET `f_teid` = '$teid' WHERE `name` ='$name' AND `f_tid` ='$tid'";
+       $query="UPDATE `$db_name`.`".$db_prefix."coach` SET `Team_idTeam` = '$teid' WHERE `Name` ='$name' AND `Tournament_idTournament` ='$tid'";
+  //     echo "$query<br>";
        $result=mysql_query($query);
        $id=mysql_insert_id ($link);
         mysql_close($link);

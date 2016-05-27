@@ -11,10 +11,10 @@
  *
  * @author WFMJ7631
  */
-class clan {
+class roster {
     //put your code here
     
-     public static function add($tid,$name,$pic) {
+     public static function add($tid,$gid,$name) {
 
         global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
 
@@ -22,11 +22,11 @@ class clan {
         mysql_select_db($db_name, $link);
 
         
-         $query = "INSERT INTO `$db_name`.`" . $db_prefix . "clan`
-             (`Tournament_idTournament`, `Name`, `Picture`) 
-             VALUES ('".$tid."', '".$name."', '".$pic."');";
+         $query = "INSERT INTO `$db_name`.`" . $db_prefix . "Roster`
+             (`Tournament_idTournament`, `Group_idGroup`,`Name`) 
+             VALUES ('".$tid."', '".$gid."', '".$name."');";
         
-         //echo $query."<br>";
+//         echo $query."<br>";
          
         $result = mysql_query($query);
         $id = mysql_insert_id($link);

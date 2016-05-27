@@ -10,7 +10,7 @@ function generate_tour_menu($tour_id) {
 
     $tour=new tournament($tour_id);
     $rounds=$tour->getRounds();
-    echo "<div id=\"titre\">$tour->name</div><br>";
+    echo "<div id=\"titre\">$tour->Name</div><br>";
 
     print "<div class=\"menu\">
             <ul id=\"nav\" class=\"dropdown dropdown-horizontal\">
@@ -49,7 +49,7 @@ function generate_tour_menu($tour_id) {
         print "<li><span class=\"dir\">Ronde $round->number</span>";
         print "<ul>
                     <li><a href=\"index.php?tournament=$tour_id&amp;rank=matchs&amp;round=$round->rid\">Matchs</a></li>";
-        if ($tour->team_tournament) {
+        if ($tour->Parameters->byteam) {
             if ($tour->team_pairing==1) {
                 print "<li><a href=\"index.php?tournament=$tour_id&amp;rank_team=matchs&amp;round=$round->rid\">Matchs d'équipes</a></li>";
             }

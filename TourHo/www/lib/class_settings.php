@@ -52,11 +52,27 @@ class settings {
              .$use_best_indiv."', '".$use_best_team."', '".$best_indiv_result."', '".$best_team_result."', '"
              .$apply_to_annex_indiv."', '". $appl_to_annex_team."', '". $except_worst_and_best_indiv."', '".$except_worst_and_best_team."');";
         
-         echo $query."<br>";
+         //echo $query."<br>";
          
         $result = mysql_query($query);
         $id = mysql_insert_id($link);
         mysql_close($link);
         return $id;
+    }
+    
+    
+    function __construct($link,$id) {
+        global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
+
+        $query = "SELECT * FROM `$db_name`." . $db_prefix . "settings WHERE Tournament_idTournament=$id";
+        echo "$query<br>";
+        $result = mysql_query($query);
+        if ($result) {
+            while ($r = mysql_fetch_assoc($result)) {
+                foreach ($r as $key => $value) {
+                    $this->$key = $value;
+                }
+            }
+        }
     }
 }

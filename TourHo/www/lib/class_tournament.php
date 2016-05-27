@@ -11,29 +11,6 @@
  * @author Frederic Berger
  */
 class tournament {
-    const C_TD_POS = 1;
-    const C_TD_NEG = 2;
-    const C_CAS_POS = 3;
-    const C_CAS_NEG = 4;
-    const C_FOUL_POS = 5;
-    const C_FOUL_NEG = 6;
-
-    const C_RANKING_NONE=0;
-    const C_RANKING_POINTS=1;
-    const C_RANKING_OPP_POINTS=2;
-    const C_RANKING_TD=3;
-    const C_RANKING_SOR=4;
-    const C_RANKING_FOUL=5;
-    const C_RANKING_DIFF_TD=6;
-    const C_RANKING_DIFF_SOR=7;
-    const C_RANKING_DIFF_FOUL=8;
-    const C_RANKING_VND=9;
-
-    const C_VND_V=1;
-    const C_VND_N=2;
-    const C_VND_D=3;
-    const C_VND_GV=4;
-    const C_VND_PD=5;
 
     public $tid = 0;
 
@@ -44,12 +21,19 @@ class tournament {
         mysql_select_db($db_name, $link);
 
         $query = "SELECT * FROM `$db_name`." . $db_prefix . "tournament WHERE tid=$id";
+        echo "$query<br>";
         $result = mysql_query($query);
-        while ($r = mysql_fetch_assoc($result)) {
-            foreach ($r as $key => $value) {
-                $this->$key = $value;
+        if ($result) {
+            while ($r = mysql_fetch_assoc($result)) {
+                foreach ($r as $key => $value) {
+                    $this->$key = $value;
+                }
             }
+            $this->Parameters=new settings($link,$id);
         }
+        
+        
+        
         $this->tid = $id;
         mysql_close($link);
     }
@@ -60,13 +44,15 @@ class tournament {
 
         $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name, $link);
-        $query = "SELECT rid FROM " . $db_prefix . "round WHERE f_tid=$this->tid ORDER BY number";
+        $query = "SELECT idRound FROM " . $db_prefix . "round WHERE Tournament_idTournament=$this->tid ORDER BY dDate";
         $result = mysql_query($query);
         $index = 0;
-        while ($r = mysql_fetch_row($result)) {
-            $list[$index++] = new round($r[0]);
+        if ($result) {
+            while ($r = mysql_fetch_row($result)) {
+                $list[$index++] = new round($link,$r[0]);
+            }
         }
-        //mysql_close($link);
+        mysql_close($link);
         return $list;
     }
 
@@ -102,19 +88,38 @@ class tournament {
         return $list;
     }
 
+    public static function exists($name) {
+        global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
+
+        $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
+        mysql_select_db($db_name, $link);
+
+        $exists = 0;
+
+        echo "SELECT idTournament from `$db_name`.`" . $db_prefix . "Tournament` where Name='" . $name . "';";
+        $result = mysql_query("SELECT idTournament from `$db_name`.`" . $db_prefix . "Tournament` where Name='" . $name . "';");
+        if ($result) {
+            if (mysql_num_rows($result)) {
+                $exists = mysql_result($result, 0);
+            }
+        }
+        mysql_close($link);
+        return $exists;
+    }
+
     public static function add($name, $date, $place) {
 
         global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
 
         $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name, $link);
-       
+
         $query = "INSERT INTO `$db_name`.`" . $db_prefix . "tournament`
         (`dDate` ,`Name` ,`Place`)
-        VALUES (str_to_date('$date','%d/%m/%Y'), '" . addslashes($name) . "', '" .addslashes($place) . "');";
-        
-        echo $query."<br>";
-        
+        VALUES (str_to_date('$date','%d/%m/%Y'), '" . addslashes($name) . "', '" . addslashes($place) . "');";
+
+        echo $query . "<br>";
+
         $result = mysql_query($query);
         $id = mysql_insert_id($link);
         mysql_close($link);
@@ -186,7 +191,7 @@ class tournament {
             $sep = '<=';
         }
 
-        $query=" (
+        $query = " (
                 SELECT tourho_coach.f_teid
                 FROM tourho_match, tourho_coach
                 WHERE tourho_match.f_rid " . $sep . "$round_id
@@ -214,10 +219,10 @@ class tournament {
                 AND tourho_coach.cid = tourho_match.f_cid1
                 )
             ";
-        /*$query = "(SELECT tourho_match.f_cid2 AS cid FROM tourho_match WHERE $coach_id = tourho_match.f_cid1 and tourho_match.f_rid" . $sep . "$round_id )
-                        UNION
-                        (SELECT tourho_match.f_cid1 AS cid FROM tourho_match WHERE $coach_id = tourho_match.f_cid2 and tourho_match.f_rid" . $sep . "$round_id )
-            ";*/
+        /* $query = "(SELECT tourho_match.f_cid2 AS cid FROM tourho_match WHERE $coach_id = tourho_match.f_cid1 and tourho_match.f_rid" . $sep . "$round_id )
+          UNION
+          (SELECT tourho_match.f_cid1 AS cid FROM tourho_match WHERE $coach_id = tourho_match.f_cid2 and tourho_match.f_rid" . $sep . "$round_id )
+          "; */
         $result = mysql_query($query);
         while ($r = mysql_fetch_row($result)) {
             array_push($list, $r[0]);
@@ -380,15 +385,15 @@ class tournament {
         $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name, $link);
 
-        /* Faire une requete qui calcule les défaites/victoires/matchs nuls d'équipe*/
-        
-        /*$query = "SELECT COUNT( value ) FROM (
-                    (
-                        (SELECT tourho_match.mid AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid1 and tourho_match.f_rid" . $sep . "$round_id AND $c1)
-                        UNION
-                        (SELECT tourho_match.mid AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid2 and tourho_match.f_rid" . $sep . "$round_id AND $c2)
-                    ) AS liste) ";*/
-        
+        /* Faire une requete qui calcule les défaites/victoires/matchs nuls d'équipe */
+
+        /* $query = "SELECT COUNT( value ) FROM (
+          (
+          (SELECT tourho_match.mid AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid1 and tourho_match.f_rid" . $sep . "$round_id AND $c1)
+          UNION
+          (SELECT tourho_match.mid AS value FROM tourho_match WHERE $coach_id = tourho_match.f_cid2 and tourho_match.f_rid" . $sep . "$round_id AND $c2)
+          ) AS liste) "; */
+
         $result = mysql_query($query);
         while ($r = mysql_fetch_row($result)) {
             $value = ($r[0]);
@@ -473,8 +478,8 @@ class tournament {
                 break;
             case tournament::C_RANKING_VND:
                 $value = $this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_V, $round_max) . "/" .
-                    $this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_N, $round_max) . "/" .
-                    $this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_D, $round_max);
+                        $this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_N, $round_max) . "/" .
+                        $this->getVNDByCoach($coach_id, $round_id, tournament::C_VND_D, $round_max);
                 break;
             default:
                 $value = 0;
@@ -485,8 +490,8 @@ class tournament {
 
     public function getRankingTeamValue($team_id, $round_id, $ranking, $round_max) {
         $value = 0;
-        $team=new team($team_id);
-        $coachs=$team->getCoachs();
+        $team = new team($team_id);
+        $coachs = $team->getCoachs();
 
         switch ($ranking) {
             case tournament::C_RANKING_DIFF_FOUL:
@@ -510,13 +515,12 @@ class tournament {
                 }
                 break;
             case tournament::C_RANKING_OPP_POINTS:
-                if (($this->team_pairing)&&($this->team_victory_only)) {
+                if (($this->team_pairing) && ($this->team_victory_only)) {
                     $opps = $this->getTeamOpponents($team_id, $round_id, $round_max);
                     foreach ($opps as $opp) {
                         $value+= $this->getPointsByTeam($opp, $round_id, $round_max);
                     }
-                }
-                else {
+                } else {
                     foreach ($coachs as $coach) {
                         $opps = $this->getCoachOpponents($coach->cid, $round_id, $round_max);
                         foreach ($opps as $opp) {
@@ -525,22 +529,21 @@ class tournament {
                         if ($this->team_pairing) {
                             $opps = $this->getTeamOpponents($team_id, $round_id, $round_max);
                             foreach ($opps as $opp) {
-                                $value+=$this->getVNDByTeam($opp, $round_id, tournament::C_VND_V, $round_max)*$this->team_victory_points;
+                                $value+=$this->getVNDByTeam($opp, $round_id, tournament::C_VND_V, $round_max) * $this->team_victory_points;
                             }
                         }
                     }
                 }
                 break;
             case tournament::C_RANKING_POINTS:
-                if (($this->team_pairing)&&($this->team_victory_only)) {
+                if (($this->team_pairing) && ($this->team_victory_only)) {
                     $value += $this->getPointsByTeam($team->teid, $round_id, $round_max);
-                }
-                else {
+                } else {
                     foreach ($coachs as $coach) {
                         $value += $this->getPointsByCoach($coach->cid, $round_id, $round_max);
                     }
                     if ($this->team_pairing) {
-                        $value+=$this->getVNDByTeam($team_id, $round_id, tournament::C_VND_V, $round_max)*$this->team_victory_points;
+                        $value+=$this->getVNDByTeam($team_id, $round_id, tournament::C_VND_V, $round_max) * $this->team_victory_points;
                     }
                 }
                 break;
@@ -555,16 +558,15 @@ class tournament {
                 }
                 break;
             case tournament::C_RANKING_VND:
-                if (($this->team_pairing)&&($this->team_victory_only)) {
+                if (($this->team_pairing) && ($this->team_victory_only)) {
                     $value += $this->getVNDByTeam($team_id, $round_id, tournament::C_VND_V, $round_max) . "/" .
-                        $this->getVNDByTeam($team_id, $round_id, tournament::C_VND_N, $round_max) . "/" .
-                        $this->getVNDByTeam($team_id, $round_id, tournament::C_VND_D, $round_max);
-                }
-                else {
+                            $this->getVNDByTeam($team_id, $round_id, tournament::C_VND_N, $round_max) . "/" .
+                            $this->getVNDByTeam($team_id, $round_id, tournament::C_VND_D, $round_max);
+                } else {
                     foreach ($coachs as $coach) {
                         $value += $this->getVNDByCoach($coach->cid, $round_id, tournament::C_VND_V, $round_max) . "/" .
-                            $this->getVNDByCoach($coach->cid, $round_id, tournament::C_VND_N, $round_max) . "/" .
-                            $this->getVNDByCoach($coach->cid, $round_id, tournament::C_VND_D, $round_max);
+                                $this->getVNDByCoach($coach->cid, $round_id, tournament::C_VND_N, $round_max) . "/" .
+                                $this->getVNDByCoach($coach->cid, $round_id, tournament::C_VND_D, $round_max);
                     }
                 }
                 break;
@@ -595,17 +597,17 @@ class tournament {
           echo "$coach->name: TD+: $td_pos_nb  * $this->td_pos$<br>";
           echo "$coach->name: CAS+: $cas_pos_nb  * $this->cas_pos$<br>";
 
-        echo "$points = $gv * $this->large_victory + ($v - $gv) * $this->victory + $n * $this->draw +
-            $pd * $this->little_lost + ($p - $pd) * $this->lost +
-            $td_pos_nb * $this->td_pos + $td_neg_nb* $this->td_neg +
-            $cas_pos_nb * $this->cas_pos + $cas_neg_nb * $this->cas_neg +
-            $foul_pos_nb * $this->foul_pos + $foul_neg_nb * $this->foul_neg <BR>";*/
+          echo "$points = $gv * $this->large_victory + ($v - $gv) * $this->victory + $n * $this->draw +
+          $pd * $this->little_lost + ($p - $pd) * $this->lost +
+          $td_pos_nb * $this->td_pos + $td_neg_nb* $this->td_neg +
+          $cas_pos_nb * $this->cas_pos + $cas_neg_nb * $this->cas_neg +
+          $foul_pos_nb * $this->foul_pos + $foul_neg_nb * $this->foul_neg <BR>"; */
 
         $points = $gv * $this->large_victory + ($v - $gv) * $this->victory + $n * $this->draw +
-            $pd * $this->little_lost + ($p - $pd) * $this->lost +
-            $td_pos_nb * $this->td_pos + $td_neg_nb* $this->td_neg +
-            $cas_pos_nb * $this->cas_pos + $cas_neg_nb * $this->cas_neg +
-            $foul_pos_nb * $this->foul_pos + $foul_neg_nb * $this->foul_neg;
+                $pd * $this->little_lost + ($p - $pd) * $this->lost +
+                $td_pos_nb * $this->td_pos + $td_neg_nb * $this->td_neg +
+                $cas_pos_nb * $this->cas_pos + $cas_neg_nb * $this->cas_neg +
+                $foul_pos_nb * $this->foul_pos + $foul_neg_nb * $this->foul_neg;
         return $points;
     }
 
@@ -615,15 +617,15 @@ class tournament {
         $n = $this->getVNDByTeam($team_id, $round_id, tournament::C_VND_N, $round_max);
         $d = $this->getVNDByTeam($team_id, $round_id, tournament::C_VND_D, $round_max);
 
-        $td_pos_nb =0;
-        $td_neg_nb =0;
-        $cas_pos_nb =0;
-        $cas_neg_nb =0;
-        $foul_pos_nb =0;
-        $foul_neg_nb =0;
+        $td_pos_nb = 0;
+        $td_neg_nb = 0;
+        $cas_pos_nb = 0;
+        $cas_neg_nb = 0;
+        $foul_pos_nb = 0;
+        $foul_neg_nb = 0;
 
-        $team=new team($team_id);
-        $coachs=$team->getCoachs();
+        $team = new team($team_id);
+        $coachs = $team->getCoachs();
         foreach ($coachs as $coach) {
             $td_pos_nb += $this->getValueByCoach($coach->cid, $round_id, tournament::C_TD_POS, $round_max);
             $td_neg_nb += $this->getValueByCoach($coach->cid, $round_id, tournament::C_TD_NEG, $round_max);
@@ -633,12 +635,13 @@ class tournament {
             $foul_neg_nb += $this->getValueByCoach($coach->cid, $round_id, tournament::C_CAS_NEG, $round_max);
         }
 
-        $points = $v*  $this->victory_team + $n * $this->draw_team + $p * $this->lost_team +
-            $td_pos_nb * $this->td_pos_team + $td_neg_nb * $this->td_neg_team +
-            $cas_pos_nb * $this->cas_pos_team + $cas_neg_nb * $this->cas_neg_team +
-            $foul_pos_nb * $this->foul_pos_team + $foul_neg_nb * $this->foul_neg_team;
+        $points = $v * $this->victory_team + $n * $this->draw_team + $p * $this->lost_team +
+                $td_pos_nb * $this->td_pos_team + $td_neg_nb * $this->td_neg_team +
+                $cas_pos_nb * $this->cas_pos_team + $cas_neg_nb * $this->cas_neg_team +
+                $foul_pos_nb * $this->foul_pos_team + $foul_neg_nb * $this->foul_neg_team;
         return $points;
     }
 
 }
+
 ?>

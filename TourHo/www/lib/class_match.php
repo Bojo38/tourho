@@ -41,7 +41,7 @@ class match {
                . "(`CoachMatch_idCoachMatch` ,`CriteriaName`,`Value1`,`Value2`)"
                . "VALUES ('".$cm."', '".$name."', '".$value1."','".$value2."');";
        
-       echo $query."<br>";
+      // echo $query."<br>";
        
        $result=mysql_query($query);
        $id=mysql_insert_id ($link);
@@ -59,7 +59,7 @@ class match {
        mysql_select_db($db_name,$link);
 
        $cid1='';
-       
+       echo "SELECT idCoach from Coach where Tournament_idTournament=".$tid." AND Name='".$cname1."'";
        $result=mysql_query("SELECT idCoach from Coach where Tournament_idTournament=".$tid." AND Name='".$cname1."'");
        if ($result)
        {
@@ -80,6 +80,41 @@ class match {
                . "`TeamMatch_idTeamMatch`)"
                . "VALUES ('".$rid."', '".$cid1."', '".$cid2."', '".$rf1."', '".$rf2."', '".$cc1."', '".$cc2."','".$tmid."');";
        
+       $result=mysql_query($query);
+       $id=mysql_insert_id ($link);
+        mysql_close($link);
+        return $id;
+    }
+    
+    public static function addTeamMatch($tid,$rid,$tname1,$tname2)
+    {
+         global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
+
+       $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
+       mysql_select_db($db_name,$link);
+
+       $tid1='';
+       echo "SELECT idTeam from team where Tournament_idTournament=".$tid." AND Name='".$tname1."'"."<br>";
+       $result=mysql_query("SELECT idTeam from team where Tournament_idTournament=".$tid." AND Name='".$tname1."'");
+       if ($result)
+       {
+        $tid1=mysql_result($result, 0);
+       }
+       
+       $tid2='';
+       
+       echo "SELECT idTeam from team where Tournament_idTournament=".$tid." AND Name='".$tname2."'"."<br>";
+       $result=mysql_query("SELECT idTeam from team where Tournament_idTournament=".$tid." AND Name='".$tname2."'");
+       if ($result)
+       {
+        $tid2=mysql_result($result, 0);
+       }
+       
+       $query="INSERT INTO `$db_name`.`".$db_prefix."TeamMatch` "
+               . "(`Round_idRound` ,`Team1_idTeam`,`Team2_idTeam`)"
+               . "VALUES ('".$rid."', '".$tid1."', '".$tid2."');";
+       
+       echo $query."<br>";
        $result=mysql_query($query);
        $id=mysql_insert_id ($link);
         mysql_close($link);

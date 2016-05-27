@@ -133,14 +133,15 @@ CREATE INDEX IFK_Rel_04 ON Clan (Tournament_idTournament);
 
 CREATE TABLE Ranking (
   idRanking INTEGER   NOT NULL AUTO_INCREMENT,
-  Criteria_idCriteria INTEGER   NOT NULL ,
+  Criteria_idCriteria INTEGER  ,
   Round_idRound INTEGER   NOT NULL ,
   Name VARCHAR(45)      ,
-PRIMARY KEY(idRanking, Criteria_idCriteria)    ,
+  PosNeg BOOLEAN      ,
+  RankType ENUM('TEAM', 'INDIVIDUAL', 'CLAN', 'GROUP'),
+  RankSubType ENUM('CRITERIA','GENERAL'),
+PRIMARY KEY(idRanking)    ,
   FOREIGN KEY(Round_idRound)
-    REFERENCES Round(idRound),
-  FOREIGN KEY(Criteria_idCriteria)
-    REFERENCES Criteria(idCriteria));
+    REFERENCES Round(idRound));
 
 
 CREATE INDEX Ranking_FKIndex1 ON Ranking (Round_idRound);
@@ -153,6 +154,8 @@ CREATE INDEX IFK_Rel_18 ON Ranking (Criteria_idCriteria);
 
 CREATE TABLE Position (
   idPosition INTEGER   NOT NULL AUTO_INCREMENT,
+  Coach_idCoach INTEGER,
+  Team_idTeam INTEGER,
   Ranking_Criteria_idCriteria INTEGER   NOT NULL ,
   Ranking_idRanking INTEGER   NOT NULL ,
   Name VARCHAR(20)    ,
@@ -164,8 +167,8 @@ CREATE TABLE Position (
   Position INTEGER    ,
   Positive BOOL      ,
 PRIMARY KEY(idPosition)  ,
-  FOREIGN KEY(Ranking_idRanking, Ranking_Criteria_idCriteria)
-    REFERENCES Ranking(idRanking, Criteria_idCriteria));
+  FOREIGN KEY(Ranking_idRanking)
+    REFERENCES Ranking(idRanking));
 
 
 CREATE INDEX Position_FKIndex1 ON Position (Ranking_idRanking, Ranking_Criteria_idCriteria);
@@ -179,9 +182,10 @@ CREATE TABLE Team (
   Clan_idClan INTEGER   NOT NULL ,
   Name VARCHAR(45)    ,
   Picture TEXT      ,
+  Tournament_idTournament INTEGER NOT NULL,
 PRIMARY KEY(idTeam)  ,
-  FOREIGN KEY(Clan_idClan)
-    REFERENCES Clan(idClan));
+  FOREIGN KEY(Tournament_idTournament)
+    REFERENCES Tournament(idTournament));
 
 
 CREATE INDEX Team_FKIndex1 ON Team (Clan_idClan);
@@ -189,6 +193,27 @@ CREATE INDEX Team_FKIndex1 ON Team (Clan_idClan);
 
 CREATE INDEX IFK_Rel_05 ON Team (Clan_idClan);
 
+CREATE TABLE RosterGroup (
+  idGroup INTEGER   NOT NULL AUTO_INCREMENT,
+  Tournament_idTournament INTEGER NOT NULL,
+  Name VARCHAR(45)    ,
+PRIMARY KEY(idGroup)    ,
+   FOREIGN KEY(Tournament_idTournament)
+    REFERENCES Tournament(idTournament)
+);
+
+
+CREATE TABLE Roster (
+  idRoster INTEGER   NOT NULL AUTO_INCREMENT,
+  Tournament_idTournament INTEGER NOT NULL,
+  Name VARCHAR(45)    ,
+  Group_idGroup INTEGER,
+PRIMARY KEY(idRoster)    ,
+   FOREIGN KEY(Tournament_idTournament)
+    REFERENCES Tournament(idTournament),
+  FOREIGN KEY(Group_idGroup)
+    REFERENCES RosterGroup(idGroup)
+);
 
 CREATE TABLE Coach (
   idCoach INTEGER   NOT NULL AUTO_INCREMENT,
@@ -218,25 +243,26 @@ CREATE INDEX IFK_Rel_06 ON Coach (Team_idTeam);
 
 CREATE TABLE TeamMatch (
   idTeamMatch INTEGER   NOT NULL AUTO_INCREMENT,
-  Team_idTeam INTEGER   NOT NULL ,
+  Team1_idTeam INTEGER   NOT NULL ,
+  Team2_idTeam INTEGER   NOT NULL ,
   Round_idRound INTEGER   NOT NULL   ,
 PRIMARY KEY(idTeamMatch)      ,
   FOREIGN KEY(Round_idRound)
     REFERENCES Round(idRound),
-  FOREIGN KEY(Team_idTeam)
+  FOREIGN KEY(Team1_idTeam)
     REFERENCES Team(idTeam),
-  FOREIGN KEY(Team_idTeam)
+  FOREIGN KEY(Team2_idTeam)
     REFERENCES Team(idTeam));
 
 
 CREATE INDEX TeamMatch_FKIndex1 ON TeamMatch (Round_idRound);
-CREATE INDEX TeamMatch_FKIndex2 ON TeamMatch (Team_idTeam);
-CREATE INDEX TeamMatch_FKIndex3 ON TeamMatch (Team_idTeam);
+CREATE INDEX TeamMatch_FKIndex2 ON TeamMatch (Team1_idTeam);
+CREATE INDEX TeamMatch_FKIndex3 ON TeamMatch (Team2_idTeam);
 
 
 CREATE INDEX IFK_Rel_10 ON TeamMatch (Round_idRound);
-CREATE INDEX IFK_Rel_15 ON TeamMatch (Team_idTeam);
-CREATE INDEX IFK_Rel_16 ON TeamMatch (Team_idTeam);
+CREATE INDEX IFK_Rel_15 ON TeamMatch (Team1_idTeam);
+CREATE INDEX IFK_Rel_16 ON TeamMatch (Team2_idTeam);
 
 
 
