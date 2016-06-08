@@ -14,13 +14,13 @@ class team {
 
     public $teid = 0;
 
-    function __construct($id) {
+    function __construct($id,$link) {
         global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
 
         $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name, $link);
 
-        $query = "SELECT * FROM `$db_name`." . $db_prefix . "team WHERE teid=$id";
+        $query = "SELECT * FROM `$db_name`." . $db_prefix . "team WHERE idTeam=$id";
         $result = mysql_query($query);
         while ($r = mysql_fetch_assoc($result)) {
             foreach ($r as $key => $value) {
@@ -28,7 +28,7 @@ class team {
             }
         }
         $this->teid = $id;
-        mysql_close($link);
+        //mysql_close($link);
     }
 
     public function getCoachs() {

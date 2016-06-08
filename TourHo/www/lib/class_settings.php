@@ -12,6 +12,8 @@
  * @author WFMJ7631
  */
 class settings {
+    
+    public $Criterias;
     //put your code here
     
      public static function add($tid,$victory, $large_victory, $draw, $lost,$little_lost,$refused,$conceeded,
@@ -60,12 +62,19 @@ class settings {
         return $id;
     }
     
+    public static function getCriterias($link,$sid)
+    {
+        global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
+
+        
+        return $criterias;
+    }
     
     function __construct($link,$id) {
         global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
 
         $query = "SELECT * FROM `$db_name`." . $db_prefix . "settings WHERE Tournament_idTournament=$id";
-        echo "$query<br>";
+   //     echo "$query<br>";
         $result = mysql_query($query);
         if ($result) {
             while ($r = mysql_fetch_assoc($result)) {
@@ -73,6 +82,19 @@ class settings {
                     $this->$key = $value;
                 }
             }
+            $this->Criterias=array();
+            $query = "SELECT * FROM `$db_name`." . $db_prefix . "criteria WHERE Settings_idSettings=$this->idSettings";
+            //echo "$query<br>";
+            $i=0;
+            $result = mysql_query($query);
+            if ($result) {
+                while ($r = mysql_fetch_assoc($result)) {
+                    $this->Criterias[$i]=new criteria($r);
+                    $i=$i+1;
+                }
+            }
         }
     }
+    
+    
 }

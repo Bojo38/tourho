@@ -12,77 +12,89 @@
  */
 class tournament {
 
-    public $tid = 0;
+    const C_RANKING_NONE = 0;
+    const C_RANKING_POINTS = 1;
+    const C_RANKING_OPP_POINTS = 2;
+    const C_RANKING_VND = 3;
+    const C_RANKING_ELO = 4;
+    const C_RANKING_ELO_OPP = 5;
+    const C_RANKING_NB_MATCHS = 6;
+    const C_RANKING_OPP_POINTS_OTHER_MATCHS = 7;
+    const C_RANKING_TABLES = 8;
+    const C_RANKING_POINTS_WITHOUT_BONUS = 9;
+    const C_RANKING_BONUS_POINTS = 10;
+    const C_RANKING_MAX = 10;
 
-    function __construct($id) {
+    public $tid = 0;
+    public $Parameters;
+
+    function __construct($id, $link) {
         global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
 
-        $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name, $link);
 
-        $query = "SELECT * FROM `$db_name`." . $db_prefix . "tournament WHERE tid=$id";
-        echo "$query<br>";
+        $query = "SELECT * FROM `$db_name`." . $db_prefix . "tournament WHERE idTournament=$id";
+        //echo "$query<br>";
         $result = mysql_query($query);
         if ($result) {
             while ($r = mysql_fetch_assoc($result)) {
                 foreach ($r as $key => $value) {
+                    //echo "[$key]=$value<br>";
                     $this->$key = $value;
                 }
             }
-            $this->Parameters=new settings($link,$id);
+            $this->Parameters = new settings($link, $id);
+        } else {
+            echo "Error selecting tournament<br>";
         }
-        
-        
-        
         $this->tid = $id;
-        mysql_close($link);
     }
 
-    public function getRounds() {
+    public function getRounds($link) {
         $list = array();
         global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
 
-        $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
+        //$link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name, $link);
         $query = "SELECT idRound FROM " . $db_prefix . "round WHERE Tournament_idTournament=$this->tid ORDER BY dDate";
         $result = mysql_query($query);
         $index = 0;
         if ($result) {
             while ($r = mysql_fetch_row($result)) {
-                $list[$index++] = new round($link,$r[0]);
+                $list[$index++] = new round($link, $r[0]);
             }
-        }
-        mysql_close($link);
-        return $list;
-    }
-
-    public function getCoachs() {
-        $list = array();
-        global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
-
-        $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
-        mysql_select_db($db_name, $link);
-        $query = "SELECT cid FROM " . $db_prefix . "coach WHERE f_tid=$this->tid";
-        $result = mysql_query($query);
-        $index = 0;
-        while ($r = mysql_fetch_row($result)) {
-            $list[$index++] = new coach($r[0]);
         }
         //mysql_close($link);
         return $list;
     }
 
-    public function getTeams() {
+    public function getCoachs($link) {
+        $list = array();
+        global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
+
+        /* $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error()); */
+        mysql_select_db($db_name, $link);
+        $query = "SELECT idCoach FROM " . $db_prefix . "coach WHERE Tournament_idTournament=$this->tid";
+        $result = mysql_query($query);
+        $index = 0;
+        while ($r = mysql_fetch_row($result)) {
+            $list[$index++] = new coach($r[0], $link);
+        }
+        //mysql_close($link);
+        return $list;
+    }
+
+    public function getTeams($link) {
         $list = array();
         global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
 
         $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name, $link);
-        $query = "SELECT teid FROM " . $db_prefix . "team WHERE f_tid=$this->tid";
+        $query = "SELECT idTeam FROM " . $db_prefix . "team WHERE Tournament_idTournament=$this->tid";
         $result = mysql_query($query);
         $index = 0;
         while ($r = mysql_fetch_row($result)) {
-            $list[$index++] = new team($r[0]);
+            $list[$index++] = new team($r[0], $link);
         }
         //mysql_close($link);
         return $list;
@@ -96,7 +108,7 @@ class tournament {
 
         $exists = 0;
 
-        echo "SELECT idTournament from `$db_name`.`" . $db_prefix . "Tournament` where Name='" . $name . "';";
+        //echo "SELECT idTournament from `$db_name`.`" . $db_prefix . "Tournament` where Name='" . $name . "';";
         $result = mysql_query("SELECT idTournament from `$db_name`.`" . $db_prefix . "Tournament` where Name='" . $name . "';");
         if ($result) {
             if (mysql_num_rows($result)) {
@@ -118,7 +130,7 @@ class tournament {
         (`dDate` ,`Name` ,`Place`)
         VALUES (str_to_date('$date','%d/%m/%Y'), '" . addslashes($name) . "', '" . addslashes($place) . "');";
 
-        echo $query . "<br>";
+        //echo $query . "<br>";
 
         $result = mysql_query($query);
         $id = mysql_insert_id($link);
@@ -410,39 +422,65 @@ class tournament {
 
     public function getRankingName($ranking) {
         $ranking_name = '';
+
+
         switch ($ranking) {
-            case tournament::C_RANKING_DIFF_FOUL:
-                $ranking_name = "Diff. Aggressions";
-                break;
-            case tournament::C_RANKING_DIFF_SOR:
-                $ranking_name = "Diff. Sorties";
-                break;
-            case tournament::C_RANKING_DIFF_TD:
-                $ranking_name = "Diff. Touchdowns";
-                break;
-            case tournament::C_RANKING_FOUL:
-                $ranking_name = "Aggressions";
-                break;
-            case tournament::C_RANKING_OPP_POINTS:
-                $ranking_name = "Points adversaires";
+            case tournament::C_RANKING_NONE:
+                $ranking_name = "Aucun";
                 break;
             case tournament::C_RANKING_POINTS:
                 $ranking_name = "Points";
                 break;
-            case tournament::C_RANKING_SOR:
-                $ranking_name = "Sorties";
-                break;
-            case tournament::C_RANKING_TD:
-                $ranking_name = "Touchdowns";
+            case tournament::C_RANKING_OPP_POINTS:
+                $ranking_name = "Points adversaires";
                 break;
             case tournament::C_RANKING_VND:
                 $ranking_name = "V/N/D";
                 break;
+            case tournament::C_RANKING_ELO:
+                $ranking_name = "ELO";
+                break;
+            case tournament::C_RANKING_ELO_OPP:
+                $ranking_name = "ELO adversaires";
+                break;
+            case tournament::C_RANKING_NB_MATCHS:
+                $ranking_name = "Nombre de matchs";
+                break;
+            case tournament::C_RANKING_OPP_POINTS_OTHER_MATCHS:
+                $ranking_name = "Points adversaires sauf mathc propre";
+                break;
+            case tournament::C_RANKING_TABLES:
+                $ranking_name = "Bonus de table";
+                break;
+             case tournament::C_RANKING_POINTS_WITHOUT_BONUS:
+                $ranking_name = "Points sans bonus";
+                break;
+            case tournament::C_RANKING_BONUS_POINTS:
+                $ranking_name = "Bonus";
+                break;
             default:
-                $ranking_name = "Rien";
+            {
+                $r_index=$ranking-tournament::C_RANKING_MAX-1;
+                $crit_index=$r_index/3;
+                $r_type=$r_index%3;
+                
+                $ranking_name=$this->Parameters->Criterias[$crit_index]->Name;
+                switch($r_type)
+                {
+                    case 0:
+                        $ranking_name=$ranking_name." +";
+                        break;
+                    case 1:
+                        $ranking_name=$ranking_name." -";
+                        break;
+                    case 2:
+                        $ranking_name=$ranking_name." +-";
+                        break;
+                }
+            }
                 break;
         }
-        return $ranking_name;
+        return htmlentities($ranking_name);
     }
 
     public function getRankingValue($coach_id, $round_id, $ranking, $round_max) {

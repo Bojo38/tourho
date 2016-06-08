@@ -33,4 +33,15 @@ class criteria {
         mysql_close($link);
         return $id;
     }
+    
+      function __construct($result) {
+          
+          if ($result)
+          {
+              foreach ($result as $key => $value) {
+                    //echo "[$key]=$value<br>";
+                    $this->$key = $value;
+                }
+          }
+      }
 }
