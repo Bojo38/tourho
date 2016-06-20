@@ -10,7 +10,7 @@ function generate_tour_menu($tour_id,$link) {
     $tour = new tournament($tour_id,$link);
     
     $rounds = $tour->getRounds($link);
-    print_r($tour);
+    //print_r($tour);
     echo "<div id=\"titre\">$tour->Name</div><br>";
 
     print "<div class=\"menu\">
@@ -814,13 +814,13 @@ function details_html($tour,$link) {
     </tr>
         <tr>
       <td class=\"tab_pos\" colspan=\"2\">Taille des équipes</td>
-      <td class=\"tab_result\">$tour->Parameters->teammates joueurs</td>
+      <td class=\"tab_result\">".$tour->Parameters->teammates." joueurs</td>
     </tr>
         <tr>
       <td class=\"tab_pos\" colspan=\"2\">Appariement</td>
       <td class=\"tab_result\">$txt</td>
     </tr>";
-        if ($tour->team_pairing == 1) {
+        if ($tour->Parameters->team_pairing == 1) {
             print "<tr>
                   <td class=\"tab_pos\" colspan=\"2\">Appariement dans les équipes</td>
                   <td class=\"tab_result\">$txt2</td>
@@ -834,7 +834,7 @@ function details_html($tour,$link) {
             </tr>
             <tr>";
     if ($tour->Parameters->byteam) {
-        print"<td class=\"tab_pos\" rowspan=\"5\" colspan=\"2\">Systèmes de classements</td>";
+        print"<td class=\"tab_pos\" rowspan=\"5\" colspan=\"2\">Systèmes de classements par équipe</td>";
         print"<td class=\"tab_result\">" . $tour->getRankingName($tour->Parameters->rank1_team) . "</td>
             </tr>
             <tr>
@@ -850,25 +850,25 @@ function details_html($tour,$link) {
             <td class=\"tab_result\">" . $tour->getRankingName($tour->Parameters->rank5_team) . "</td>
             </tr>
             <tr>";
-        if ($tour->team_pairing == 1) {
-            if ($tour->team_victory_only) {
+        if ($tour->Parameters->team_pairing == 1) {
+            if ($tour->Parameters->team_victory_only) {
                 print "<tr>
             <td colspan =\"2\" class=\"tab_pos\">Système de points</td>
             <td class=\"tab_result\">Points de l'équipe</td>
             </tr>";
                 print "<td class=\"tab_pos\" rowspan=\"9\">Valeur des points</td>
             <td class=\"tab_result\">Victoire d'équipe</td>
-            <td class=\"tab_result\">$tour->victory_team points</td>
+            <td class=\"tab_result\">".$tour->Parameters->victory_team." points</td>
             </tr>
             <tr>
             <td class=\"tab_result\">Nul d'équipe</td>
-            <td class=\"tab_result\">$tour->draw_team points</td>
+            <td class=\"tab_result\">".$tour->Parameters->draw_team." points</td>
             </tr>
             <tr>
             <td class=\"tab_result\">Défaite d'équipe</td>
-            <td class=\"tab_result\">$tour->lost_team points</td>
-            </tr>
-            <tr>
+            <td class=\"tab_result\">".$tour->Parameters->lost_team." points</td>
+            </tr>";
+            /*<tr>
             <td class=\"tab_result\">Touchdown marqué</td>
             <td class=\"tab_result\">$tour->td_pos_team points</td>
             </tr>
@@ -891,21 +891,34 @@ function details_html($tour,$link) {
             <tr>
             <td class=\"tab_result\">Aggression subie</td>
             <td class=\"tab_result\">$tour->foul_neg_team points</td>
-            </tr>";
+            </tr>";*/
             } else {
                 print "<tr>
-            <td colspan =\"2\" class=\"tab_pos\">Système de points</td>
+            <td colspan =\"2\" rowspan=\"3\" class=\"tab_pos\">Système de points</td>
             <td class=\"tab_result\">Cumul des points des joueurs</td>
             </tr>
                 <tr>
             <td class=\"tab_result\">Prime à la victoire d'équipe</td>
-            <td class=\"tab_result\">$tour->team_victory_points points</td>
+            <td class=\"tab_result\">".$tour->Parameters->team_victory_points." points</td>
+            </tr>
+            <tr>
+            <td class=\"tab_result\">Prime au nul d'équipe</td>
+            <td class=\"tab_result\">".$tour->Parameters->team_draw_points." points</td>
             </tr>";
             }
         }
         print"<td class=\"tab_pos\" rowspan=\"5\" colspan=\"2\">Systèmes de classements individuel</td>";
     } else {
         print"<td class=\"tab_pos\" rowspan=\"5\" colspan=\"2\">Systèmes de classements</td>";
+    }
+    $span=6;
+    if ($tour->Parameters->use_large_victory)
+            {
+        $span=$span+1;
+    }
+    if ($tour->Parameters->use_little_loss)
+            {
+        $span=$span+1;
     }
     print"<td class=\"tab_result\">" . $tour->getRankingName($tour->Parameters->rank1) . "</td>
             </tr>
@@ -922,7 +935,7 @@ function details_html($tour,$link) {
             <td class=\"tab_result\">" . $tour->getRankingName($tour->Parameters->rank5) . "</td>
             </tr>
             <tr>
-            <td class=\"tab_pos\" rowspan=\"11\" colspan=\"2\">Valeur des points</td>
+            <td class=\"tab_pos\" rowspan=\"".$span."\" colspan=\"2\">Valeur des points</td>
             </tr>";
             if ($tour->Parameters->use_large_victory)
             {
@@ -949,37 +962,55 @@ function details_html($tour,$link) {
             print "<tr>
             <td class=\"tab_result\">Défaite</td>
             <td class=\"tab_result\">".$tour->Parameters->lost." points</td>
-            </tr>
-            <tr>";
+            </tr>";
+
+            
+            print "<tr>
+            <td class=\"tab_result\">Abandon</td>
+            <td class=\"tab_result\">".$tour->Parameters->conceeded." points</td>
+            </tr>";
+            
+            print "<tr>
+            <td class=\"tab_result\">Refus</td>
+            <td class=\"tab_result\">".$tour->Parameters->refused." points</td>
+            </tr>";
             
             //Add criterias display
-            /*<td class=\"tab_result\">Touchdown marqué</td>
-            <td class=\"tab_result\">$tour->td_pos points</td>
-            </tr>
-            <tr>
-            <td class=\"tab_result\">Touchdown encaissé</td>
-            <td class=\"tab_result\">$tour->td_neg points</td>
-            </tr>
-            <tr>
-            <td class=\"tab_result\">Sortie réalisée</td>
-            <td class=\"tab_result\">$tour->cas_pos points</td>
-            </tr>
-            <tr>
-            <td class=\"tab_result\">Sortie subie</td>
-            <td class=\"tab_result\">$tour->cas_neg points</td>
-            </tr>
-            <tr>
-            <td class=\"tab_result\">Aggression réussie</td>
-            <td class=\"tab_result\">$tour->foul_pos points</td>
-            </tr>
-            <tr>
-            <td class=\"tab_result\">Aggression subie</td>
-            <td class=\"tab_result\">$tour->foul_neg points</td>
-            </tr>";*/
-
-
-    print "</tbody>
-            </table>";
+            print "<tr><td class=\"tab_pos\" colspan=\"2\" rowspan=\"".(count($tour->Parameters->Criterias)+1)."\">Critères</td>";           
+            print "</tr>";
+            
+            foreach($tour->Parameters->Criterias as $crit)
+            {
+                 print "<tr>
+            <td class=\"tab_result\">$crit->Name</td>
+            <td class=\"tab_result\">pour ".$crit->Points_For." points<br>
+            contre ".$crit->Points_Against." points</td>";
+                if ($tour->Parameters->byteam)
+                {
+                    print "<td class=\"tab_result\">pour (Equipe) ".$crit->Points_Team_For." points<br>
+                            contre (Equipe)".$crit->Points_Team_Against." points</td>";
+                }
+            print "</tr>";
+            }
+            
+            // Ajouter les bonus de tables
+            if ($tour->Parameters->table_bonus)
+            {
+                 print "<tr>
+            <td class=\"tab_pos\">Bonus de table</td>
+            <td class=\"tab_result\">x ".$tour->Parameters->table_bonus_coeff."</td>
+            </tr>";
+            }
+            
+            if ($tour->Parameters->table_bonus_per_round)
+            {
+                 print "<tr>
+            <td class=\"tab_pos\">Ajustement des bonus par ronde<br>Système \"Galanthil\"</td>
+            <td class=\"tab_result\">Oui</td>
+            </tr>";
+            }
+            
+    print "</tbody> </table>";
 }
 
 function tournament_html($tour_id) {

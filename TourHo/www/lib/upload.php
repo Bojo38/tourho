@@ -53,14 +53,14 @@ function fill_database_from_xml(SimpleXMLElement $xml) {
             if ($exists>0)
             {
                 echo $attr['Name']." already exists<br>";
-                exit();
+                exit($attr['Name']." already exists");
             }
             
             $tid = tournament::add($attr['Name'], $attr['Date'], $attr['Place']);
 
             //print_r($attr);
 
-            $sid = settings::add($tid, $attr['Victory'], $attr['Large_Victory'], $attr['Draw'], $attr['Lost'], $attr['Little_Lost'], $attr['Refused'], $attr['Conceeded'], $attr['Victory_Team'], $attr['Draw_Team'], $attr['Lost_Team'], $attr['Large_Victory_Gap'], $attr['Little_Lost_Gap'], $attr['Rank1'], $attr['Rank2'], $attr['Rank3'], $attr['Rank4'], $attr['Rank5'], $attr['Rank_Team1'], $attr['Rank_Team2'], $attr['Rank_Team3'], $attr['Rank_Team4'], $attr['Rank_Team5'], $attr['ByTeam'], $attr['TeamMates'], $attr['TeamPairing'], $attr['TeamIndivPairing'], $attr['TeamVictoryPoints'], $attr['TeamDrawPoints'], $attr['TeamVictoryOnly'], $attr['GroupEnable'], $attr['Substitutes'], $attr['GameType'], $attr['ActvateClans'], $attr['AvoidFirstMatch'], $attr['AvoidMatch'], $attr['ClanTeammatesNumber'], $attr['MultiRoster'], $attr['IndivBalanced'], $attr['TeamBalanced'], $attr['UseLargeVictory'], $attr['UseLittleLost'], $attr['TableBonus'], $attr['TableBonusPerRound'], $attr['TableBonusCoef'], $attr['UseBestResultIndiv'], $attr['UseBestResultTeam'], $attr['BestResultIndiv'], $attr['BestReasultTeam'], $attr['ApplyToAnnexTeam'], $attr['ApplyToAnnexIndiv'], $attr['ExceptBestAndWorstIndiv'], $attr['ExceptBestAndWorstTeam']);
+            $sid = settings::add($tid, $attr['Victory'], $attr['Large_Victory'], $attr['Draw'], $attr['Lost'], $attr['Little_Lost'], $attr['Refused'], $attr['Conceeded'], $attr['Victory_Team'], $attr['Draw_Team'], $attr['Lost_Team'], $attr['Large_Victory_Gap'], $attr['Little_Lost_Gap'], $attr['Rank1'], $attr['Rank2'], $attr['Rank3'], $attr['Rank4'], $attr['Rank5'], $attr['Rank1_Team'], $attr['Rank2_Team'], $attr['Rank3_Team'], $attr['Rank4_Team'], $attr['Rank5_Team'], $attr['ByTeam'], $attr['TeamMates'], $attr['TeamPairing'], $attr['TeamIndivPairing'], $attr['TeamVictoryPoints'], $attr['TeamDrawPoints'], $attr['TeamVictoryOnly'], $attr['GroupEnable'], $attr['Substitutes'], $attr['GameType'], $attr['ActvateClans'], $attr['AvoidFirstMatch'], $attr['AvoidMatch'], $attr['ClanTeammatesNumber'], $attr['MultiRoster'], $attr['IndivBalanced'], $attr['TeamBalanced'], $attr['UseLargeVictory'], $attr['UseLittleLost'], $attr['TableBonus'], $attr['TableBonusPerRound'], $attr['TableBonusCoef'], $attr['UseBestResultIndiv'], $attr['UseBestResultTeam'], $attr['BestResultIndiv'], $attr['BestReasultTeam'], $attr['ApplyToAnnexTeam'], $attr['ApplyToAnnexIndiv'], $attr['ExceptBestAndWorstIndiv'], $attr['ExceptBestAndWorstTeam']);
 
             foreach ($element->children() as $criteria) {
                 $attr_c = $criteria->attributes();
@@ -187,7 +187,7 @@ function fill_database_from_xml(SimpleXMLElement $xml) {
                     
                     $attr_ranking=$ranking->attributes();
                     
-                    print_r($attr_ranking);
+                    //print_r($attr_ranking);
                     
                     $type='';
                     $subtype='';
@@ -226,7 +226,7 @@ function fill_database_from_xml(SimpleXMLElement $xml) {
                     $positions=$ranking->children();
                     foreach ($ranking->children() as $position) {
                         $attr_rp=$position->attributes();
-                        print_r($position);
+                        //print_r($position);
                     }
                     
                 }
