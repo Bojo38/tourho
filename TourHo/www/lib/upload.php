@@ -14,7 +14,6 @@ require_once 'lib/class_roster.php';
 require_once 'lib/class_ranking.php';
 require_once 'lib/class_position.php';
 
-
 function upload_html() {
     echo "<br><br>";
 
@@ -41,21 +40,24 @@ $teid = -1;
 
 function fill_database_from_xml(SimpleXMLElement $xml) {
 
+    /*global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
+    $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());*/
+    $link=0;
+                      
     set_time_limit(0);
     foreach ($xml->children() as $element) {
         if ($element->getName() == "Parameters") {
             //print_r($element->attributes());
             $attr = $element->attributes();
-            
-            // Check that tournament does not exists
-            $exists= tournament::exists($attr['Name']);
 
-            if ($exists>0)
-            {
-                echo $attr['Name']." already exists<br>";
-                exit($attr['Name']." already exists");
+            // Check that tournament does not exists
+            $exists = tournament::exists($attr['Name']);
+
+            if ($exists > 0) {
+                echo $attr['Name'] . " already exists<br>";
+                exit($attr['Name'] . " already exists");
             }
-            
+
             $tid = tournament::add($attr['Name'], $attr['Date'], $attr['Place']);
 
             //print_r($attr);
@@ -184,55 +186,71 @@ function fill_database_from_xml(SimpleXMLElement $xml) {
 
                 if ($child->getName() == "Ranking") {
                     $ranking = $child;
-                    
-                    $attr_ranking=$ranking->attributes();
-                    
+
+                    $attr_ranking = $ranking->attributes();
+
                     //print_r($attr_ranking);
-                    
-                    $type='';
-                    $subtype='';
-                    $posneg=0;
-                    $criteria='';
-                    switch($attr_ranking['Name'])
-                    {
+
+                    $type = '';
+                    $subtype = '';
+                    $posneg = 0;
+                    $criteria = '';
+                    switch ($attr_ranking['Name']) {
                         case 'INDIVIDUAL':
-                            $type='INDIVIDUAL';
+                            $type = 'INDIVIDUAL';
                             break;
                         case 'TEAM':
-                            $type='TEAM';
+                            $type = 'TEAM';
                             break;
                         case 'CLAN':
-                            $type='CLAN';
+                            $type = 'CLAN';
                             break;
                         case 'GROUP':
-                            $type='GROUP';
+                            $type = 'GROUP';
                             break;
                     }
-                    
-                    switch($attr_ranking['Type'])
-                    {
+
+                    switch ($attr_ranking['Type']) {
                         case 'General':
-                            $subtype='GENERAL';
+                            $subtype = 'GENERAL';
                             break;
                         default:
-                            $subtype='CRITERIA';
-                            $criteria=$attr_ranking['Type'];
-                            $posneg=($attr_ranking['Order']=='Positive');
+                            $subtype = 'CRITERIA';
+                            $criteria = $attr_ranking['Type'];
+                            $posneg = ($attr_ranking['Order'] == 'Positive');
                     }
-                    $rankings=0;
-                    
-                    ranking::add($tid,$rid,$attr_ranking['Type'],$type,$subtype,$rankings,$criteria,$posneg);
-                    
-                    $positions=$ranking->children();
-                    foreach ($ranking->children() as $position) {
-                        $attr_rp=$position->attributes();
+                    $rankings = 0;
+
+  
+                      
+                    $rkid = ranking::add($tid, $rid, $attr_ranking['Type'], $type, $subtype, $rankings, $criteria, $posneg);
+
+                    $positions = $ranking->children();
+                    foreach ($positions as $position) {
+                        $attr_rp = $position->attributes();
                         //print_r($position);
+                        if ($type == 'INDIVIDUAL') {
+                            if ($subtype == 'GENERAL') {
+                                position::addCoach($link,$tid,$rkid, $attr_rp['Coach'], $attr_rp['TeamMates'], $attr_rp['Roster'], $criteria, $attr_rp['Rank1'], $attr_rp['Rank2'], $attr_rp['Rank3'], $attr_rp['Rank4'], $attr_rp['Rank5'], $attr_rp['Pos'],0);
+                            }
+                            if ($subtype == 'CRITERIA') {
+                                position::addCoach($link,$tid,$rkid, $attr_rp['Coach'], $attr_rp['TeamMates'], $attr_rp['Roster'], $criteria, $attr_rp['Value'], 0, 0, 0, 0, $attr_rp['Pos'],$posneg);
+                            }
+                        }
+                        if ($attr_ranking['Type'] == 'TEAM') {
+                            if ($subtype == 'GENERAL') {
+                                position::addTeam($link,$tid,$rkid, $attr_rp['Name'], $criteria, $attr_rp['Rank1'], $attr_rp['Rank2'], $attr_rp['Rank3'], $attr_rp['Rank4'], $attr_rp['Rank5'], $attr_rp['Pos'],0);
+                            }
+                            if ($subtype == 'CRITERIA') {
+                                position::addTeam($link,$tid,$rkid, $attr_rp['Name'], $criteria, $attr_rp['Value'], 0, 0, 0, 0, $attr_rp['Pos'],$posneg);
+                            }
+                        }
                     }
-                    
                 }
             }
         }
     }
+   // mysql_close($link);
 }
 
 /*
