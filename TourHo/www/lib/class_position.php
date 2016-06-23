@@ -10,8 +10,25 @@
  * Description of class_position
  *
  * @author WFMJ7631
- */
+*/
 class position {
+    
+   function __construct($link,$id) {
+
+       global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
+
+        mysql_select_db($db_name, $link);
+        
+        $query = "SELECT * FROM `$db_name`." . $db_prefix . "position WHERE idPosition=$id";
+        $result = mysql_query($query);
+        while ($r = mysql_fetch_assoc($result)) {
+            foreach ($r as $key => $value) {
+                $this->$key = $value;
+            }
+        }
+    }
+  
+    
     //put your code here
     public static function addCoach($link,$tid,$rkid, $coach_name, $teammates, $roster, $criteria, $r1, $r2, $r3, $r4, $r5, $position,$posneg)
     {

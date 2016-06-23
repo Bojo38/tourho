@@ -334,9 +334,11 @@ function general_display($link, $tid, $rid, $round_max) {
   <tbody>
     <tr>
       <td class=\"tab_titre\">N°</td>
-      <td class=\"tab_titre\">Coach</td>
-      <td class=\"tab_titre\">Equipe</td>
-      <td class=\"tab_titre\">Roster</td>";
+      <td class=\"tab_titre\">Coach</td>";
+    if ($tour->Parameters->byteam) {
+        print "<td class=\"tab_titre\">Equipe</td>";
+    }
+    print "<td class=\"tab_titre\">Roster</td>";
     if ($ranking_name1 != '') {
         print "<td class=\"tab_titre\">" . $ranking_name1 . "</td>";
         $col_count = $col_count + 1;
@@ -358,17 +360,47 @@ function general_display($link, $tid, $rid, $round_max) {
         $col_count = $col_count + 1;
     }
     print "</tr>";
-    
-    
-       /*     global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
 
-        //$link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
-        mysql_select_db($db_name, $link)
-        $query = "SELECT idRound FROM " . $db_prefix . "position LEFT JOIN " . $db_prefix . "ranking "
-                . "WHERE Tournament_idTournament=$this->tid ORDER BY dDate";
-        $result = mysql_query($query);*/
 
-    
+    $ranking = new ranking($link, 'INDIVIDUAL', 'GENERAL', $rid);
+
+    foreach ($ranking->Positions as $pos) {
+        $coach = new coach( $pos->Coach_idCoach,$link);
+        print "<tr><td class=\"tab_pos\">" . $pos->Position . "</td>";
+        print "<td class=\"tab_pos\">" . $pos->Name . "</td>";
+        if ($tour->Parameters->byteam) {
+            $team = new team($pos->Team_idTeam,$link);
+            print "<td class=\"tab_pos\">" . $team->Name . "</td>";
+        }
+        print "<td class=\"tab_pos\">" . $coach->Roster . "</td>";
+        if ($ranking_name1 != '') {
+            print "<td class=\"tab_pos\">" . $pos->Value1 . "</td>";
+        }
+        if ($ranking_name2 != '') {
+            print "<td class=\"tab_pos\">" . $pos->Value2 . "</td>";
+        }
+        if ($ranking_name3 != '') {
+            print "<td class=\"tab_pos\">" . $pos->Value3 . "</td>";
+        }
+        if ($ranking_name4 != '') {
+            print "<td class=\"tab_pos\">" . $pos->Value4 . "</td>";
+        }
+        if ($ranking_name5 != '') {
+            print "<td class=\"tab_pos\">" . $pos->Value5 . "</td>";
+        }
+        print "</tr>";
+    }
+
+
+    /*     global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
+
+      //$link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
+      mysql_select_db($db_name, $link)
+      $query = "SELECT idRound FROM " . $db_prefix . "position LEFT JOIN " . $db_prefix . "ranking "
+      . "WHERE Tournament_idTournament=$this->tid ORDER BY dDate";
+      $result = mysql_query($query); */
+
+
     /* foreach ($list as $element) {
       if ($counter == 1) {
       $suffix = "_1";

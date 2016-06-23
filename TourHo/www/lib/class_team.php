@@ -37,7 +37,7 @@ class team {
 
         $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name, $link);
-        $query = "SELECT cid FROM " . $db_prefix . "coach WHERE f_teid=$this->teid";
+        $query = "SELECT idCoach FROM " . $db_prefix . "coach WHERE f_teid=$this->teid";
         $result = mysql_query($query);
         $index = 0;
         while ($r = mysql_fetch_row($result)) {
