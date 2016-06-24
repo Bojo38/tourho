@@ -55,7 +55,7 @@ function fill_database_from_xml(SimpleXMLElement $xml) {
 
             if ($exists > 0) {
                 echo $attr['Name'] . " already exists<br>";
-                exit($attr['Name'] . " already exists");
+                //exit($attr['Name'] . " already exists");
             }
 
             $tid = tournament::add($attr['Name'], $attr['Date'], $attr['Place']);
@@ -217,10 +217,16 @@ function fill_database_from_xml(SimpleXMLElement $xml) {
                         default:
                             $subtype = 'CRITERIA';
                             $criteria = $attr_ranking['Type'];
-                            $posneg = ($attr_ranking['Order'] == 'Positive');
+                            if ($attr_ranking['Order'] == 'Positive')
+                            {
+                                $posneg = 1;
+                            }
+                            else
+                            {
+                                $posneg=0;
+                            }
                     }
                     $rankings = 0;
-
   
                       
                     $rkid = ranking::add($tid, $rid, $attr_ranking['Type'], $type, $subtype, $rankings, $criteria, $posneg);

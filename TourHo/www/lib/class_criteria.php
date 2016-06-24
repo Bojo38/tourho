@@ -34,6 +34,23 @@ class criteria {
         return $id;
     }
     
+    
+    public static function fromID($id, $link) {
+        global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
+
+        //$link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
+        mysql_select_db($db_name, $link);
+
+        $query = "SELECT * FROM `$db_name`." . $db_prefix . "criteria WHERE idCriteria=$id";
+        //echo "$query<br>";
+        $result = mysql_query($query);
+        if ($result) {
+            while ($r = mysql_fetch_assoc($result)) {
+                return new criteria($r);
+            }
+        }
+    }
+    
       function __construct($result) {
           
           if ($result)

@@ -59,7 +59,7 @@ class match {
        mysql_select_db($db_name,$link);
 
        $cid1='';
-       echo "SELECT idCoach from Coach where Tournament_idTournament=".$tid." AND Name='".$cname1."'";
+      // echo "SELECT idCoach from Coach where Tournament_idTournament=".$tid." AND Name='".$cname1."'";
        $result=mysql_query("SELECT idCoach from Coach where Tournament_idTournament=".$tid." AND Name='".$cname1."'");
        if ($result)
        {
@@ -94,7 +94,7 @@ class match {
        mysql_select_db($db_name,$link);
 
        $tid1='';
-       echo "SELECT idTeam from team where Tournament_idTournament=".$tid." AND Name='".$tname1."'"."<br>";
+       //echo "SELECT idTeam from team where Tournament_idTournament=".$tid." AND Name='".$tname1."'"."<br>";
        $result=mysql_query("SELECT idTeam from team where Tournament_idTournament=".$tid." AND Name='".$tname1."'");
        if ($result)
        {
@@ -103,7 +103,7 @@ class match {
        
        $tid2='';
        
-       echo "SELECT idTeam from team where Tournament_idTournament=".$tid." AND Name='".$tname2."'"."<br>";
+       //echo "SELECT idTeam from team where Tournament_idTournament=".$tid." AND Name='".$tname2."'"."<br>";
        $result=mysql_query("SELECT idTeam from team where Tournament_idTournament=".$tid." AND Name='".$tname2."'");
        if ($result)
        {
@@ -114,7 +114,7 @@ class match {
                . "(`Round_idRound` ,`Team1_idTeam`,`Team2_idTeam`)"
                . "VALUES ('".$rid."', '".$tid1."', '".$tid2."');";
        
-       echo $query."<br>";
+       //echo $query."<br>";
        $result=mysql_query($query);
        $id=mysql_insert_id ($link);
         mysql_close($link);

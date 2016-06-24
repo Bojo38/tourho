@@ -13,13 +13,20 @@
  */
 class ranking {
 
-    public function __construct($link, $type, $subtype, $rid) {
+    public function __construct($link, $type, $subtype, $rid,$crid,$posneg) {
         $list = array();
         global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
 
         mysql_select_db($db_name, $link);
         $rkid = 0;
-        $query = "SELECT * FROM " . $db_prefix . "ranking WHERE RankType='" . $type . "' AND RankSubType='" . $subtype . "' and Round_idRound=$rid;";
+        if ($crid==-1)
+        {
+            $query = "SELECT * FROM " . $db_prefix . "ranking WHERE RankType='" . $type . "' AND RankSubType='" . $subtype . "' and Round_idRound=$rid;";
+        }
+        else
+        {
+            $query = "SELECT * FROM " . $db_prefix . "ranking WHERE RankType='" . $type . "' AND RankSubType='" . $subtype . "' and Round_idRound=$rid AND Criteria_idCriteria='".$crid."' AND PosNeg='".$posneg."';";
+        }
         $result = mysql_query($query);
 
         if ($result) {
@@ -46,24 +53,30 @@ class ranking {
         $this->Positions = $list;
     }
 
-    public static function add($tid, $rid, $name, $type, $subtype, $rankings, $criteria, $posneg) {
+    
+    public static function add($tid, $rid, $name, $type, $subtype, $rankings,$criteria, $posneg) {
         global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
 
         $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
         mysql_select_db($db_name, $link);
-
+        
         $idCriteria = '';
 
-        $result = mysql_query("SELECT idCriteria from Criteria where Tournament_idTournament=" . $tid . " AND Name='" . $criteria . "'");
+        $query="SELECT idCriteria from Criteria where Settings_Tournament_idTournament=" . $tid . " AND Name='" . $criteria . "'";
+        //echo "$query<br>";
+        $result = mysql_query($query);
         if ($result) {
+            if (mysql_num_rows ($result)>0)
+            {
             $idCriteria = mysql_result($result, 0);
+            }
         }
 
         $query = "INSERT INTO `$db_name`.`" . $db_prefix . "ranking` "
                 . "(`Round_idRound` ,`Name`,`RankType` ,`RankSubType` ,`PosNeg` ,`Criteria_idCriteria`)"
                 . "VALUES ('" . $rid . "', '" . addslashes($name) . "', '$type','$subtype', '$posneg', '$idCriteria');";
 
-        echo $query . "<br>";
+        //echo $query . "<br>";
         $result = mysql_query($query);
         $id = mysql_insert_id($link);
         mysql_close($link);
