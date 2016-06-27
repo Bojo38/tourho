@@ -8,6 +8,8 @@ require_once 'lib/class_tournament.php';
 require_once 'lib/class_coach.php';
 require_once 'lib/class_round.php';
 require_once 'lib/class_match.php';
+require_once 'lib/class_coachmatch.php';
+require_once 'lib/class_coachvalue.php';
 require_once 'lib/class_team.php';
 require_once 'lib/class_group.php';
 require_once 'lib/class_roster.php';
@@ -243,7 +245,7 @@ function fill_database_from_xml(SimpleXMLElement $xml) {
                                 position::addCoach($link,$tid,$rkid, $attr_rp['Coach'], $attr_rp['TeamMates'], $attr_rp['Roster'], $criteria, $attr_rp['Value'], 0, 0, 0, 0, $attr_rp['Pos'],$posneg);
                             }
                         }
-                        if ($attr_ranking['Type'] == 'TEAM') {
+                        if ($type == 'TEAM') {
                             if ($subtype == 'GENERAL') {
                                 position::addTeam($link,$tid,$rkid, $attr_rp['Name'], $criteria, $attr_rp['Rank1'], $attr_rp['Rank2'], $attr_rp['Rank3'], $attr_rp['Rank4'], $attr_rp['Rank5'], $attr_rp['Pos'],0);
                             }

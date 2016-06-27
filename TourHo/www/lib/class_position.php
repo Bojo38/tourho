@@ -76,16 +76,17 @@ class position {
           mysql_close($link);
          return $result;
     }
-    public static function addTeam($link,$tid,$rkid, $team, $criteria, $r1, $r2, $r3, $r4, $r5,$posneg)
+    public static function addTeam($link,$tid,$rkid, $team, $criteria, $r1, $r2, $r3, $r4, $r5,$position,$posneg)
     {
                 global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
 
         $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
-
          
         $teid='';
-        // Get Coach ID
-        $result = mysql_query("SELECT idTeam from `$db_name`.`" . $db_prefix . "Team` where Tournament_idTournament=" . $tid . " AND Name='" . $team . "'");
+        // Get Coach ID        
+        $query="SELECT idTeam from `$db_name`.`" . $db_prefix . "Team` where Tournament_idTournament=" . $tid . " AND Name='" . $team . "'";
+        print "$query<br>";
+        $result = mysql_query($query);
         if ($result) {
             $row = mysql_fetch_assoc($result);
             if ($row) {
@@ -97,7 +98,9 @@ class position {
         }
 
         $crit='';
-        $result = mysql_query("SELECT idCriteria from `$db_name`.`" . $db_prefix . "Criteria where Settings_Tournament_idTournament=" . $tid . " AND Name='" . $criteria . "'");
+        $query="SELECT idCriteria from `$db_name`.`" . $db_prefix . "Criteria` where Settings_Tournament_idTournament=" . $tid . " AND Name='" . $criteria . "'";
+        echo "$query<br>";
+        $result = mysql_query($query);
         if ($result) {
             $row = mysql_fetch_assoc($result);
             if ($row) {
@@ -112,7 +115,7 @@ class position {
                 . "`Ranking_idRanking`,`Name`,`Value1`,`Value2`,`Value3`,`Value4`,`Value5`,`Position`,`Positive`) "
                 . "VALUES ('$teid','$crit','$rkid', '$team',"
                 . "'$r1','$r2','$r3','$r4','$r5','$position','$posneg');";
-        
+         echo "$query<br>";
          $result = mysql_query($query);
           mysql_close($link);
          return $result;

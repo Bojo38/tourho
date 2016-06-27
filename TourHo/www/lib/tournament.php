@@ -46,7 +46,7 @@ function generate_tour_menu($tour_id, $link) {
         print "<ul>
                     <li><a href=\"index.php?tournament=$tour_id&amp;rank=matchs&amp;round=$round->rid\">Matchs</a></li>";
         if ($tour->Parameters->byteam) {
-            if ($tour->team_pairing == 1) {
+            if ($tour->Parameters->team_pairing == 1) {
                 print "<li><a href=\"index.php?tournament=$tour_id&amp;rank_team=matchs&amp;round=$round->rid\">Matchs d'équipes</a></li>";
             }
             print "<li><span class=\"dir\">Classements sur la ronde (Equipe)</span>
@@ -73,7 +73,7 @@ function generate_tour_menu($tour_id, $link) {
                     </li>
                 ";
         }
-        if ($tour->team_tournament) {
+        if ($tour->Parameters->byteam) {
             print "<li><span class=\"dir\">Classements sur la ronde (Individuel)</span>";
         } else {
             print "<li><span class=\"dir\">Classements sur la ronde</span>";
@@ -90,7 +90,7 @@ function generate_tour_menu($tour_id, $link) {
                             <li><a href=\"index.php?tournament=$tour_id&amp;rank=minus&amp;round=$round->rid\">Minus</a></li>
                         </ul>
                     </li>";
-        if ($tour->team_tournament) {
+        if ($tour->Parameters->byteam) {
             print "<li><span class=\"dir\">Classements à la ronde (Individuel)</span>";
         } else {
             print "<li><span class=\"dir\">Classements à la ronde</span>";
@@ -113,40 +113,71 @@ function generate_tour_menu($tour_id, $link) {
         </div>";
 }
 
-function match_display($tid, $round_id) {
-    $tour = new tournament($tid);
+function match_display($link, $tid, $round_id) {
+    $tour = new tournament($tid, $link);
 
-    $round = new round($round_id);
-    $matchs = $round->getMatchs();
-    print "<br><div id=\"titre\">Ronde $round->number</div>";
+    $rounds = $tour->getRounds($link);
+
+    $index = 0;
+
+    while (($rounds[$index]->idRound != $round_id) && ($index < count($rounds))) {
+        $index = $index + 1;
+    }
+    if ($index == count($rounds)) {
+        exit("Ronde non trouvée");
+    }
+    $matchs = $rounds[$index]->getCoachMatchs($link);
+    $index = $index + 1;
+
+    print "<br><div id=\"titre\">Ronde " . $index . "</div>";
     echo "<table
  style=\"border-color: black; width: 100%; text-align: left; margin-left: auto; margin-right: auto;text-align:center;\"
  border=\"0\" cellpadding=\"0\" cellspacing=\"0\">
   <tbody>
     <tr>";
-    if ($tour->team_tournament) {
-        print "<td colspan=\"1\" rowspan=\"2\" class=\"tab_titre\">Clan 1</td>";
+    if ($tour->Parameters->byteam) {
+        print "<td  class=\"tab_titre\">Equipe 1</td>";
     }
-    print " <td colspan=\"1\" rowspan=\"2\" class=\"tab_titre\">Coach 1</td>
-      <td colspan=\"4\" class=\"tab_titre\">Touchdowns</td>
-      <td colspan=\"1\" rowspan=\"2\" class=\"tab_titre\">Coach 2</td>";
-    if ($tour->team_tournament) {
-        print "<td colspan=\"1\" rowspan=\"2\" class=\"tab_titre\">Clan 2</td>";
+    print " <td  class=\"tab_titre\">Coach 1</td>
+      <td class=\"tab_titre\" colspan=\"2\">Touchdowns</td>
+      <td class=\"tab_titre\">Coach 2</td>";
+    if ($tour->Parameters->byteam) {
+        print "<td  class=\"tab_titre\" >Equipe 2</td>";
     }
-    print "
-    </tr>
-    <tr>
-      <td colspan=\"2\" class=\"tab_titre\">Sorties</td>
-      <td colspan=\"2\" class=\"tab_titre\">Aggressions</td>
-    </tr>";
+    
+    $i = 0;
+    foreach ($tour->Parameters->Criterias as $crit) {
+        if ($i != 0) {
+            print "<td class=\"tab_result\"colspan=\"2\">$crit->Name</td>";
+        }
+        $i++;
+    }
+    print "</tr>";
+
     foreach ($matchs as $match) {
-        $c1 = new coach($match->f_cid1);
-        $c2 = new coach($match->f_cid2);
-        if ($match->td1 > $match->td2) {
+        $c1 = new coach($match->Coach1_idCoach, $link);
+        $c2 = new coach($match->Coach2_idCoach, $link);
+        $values = $match->getValues($link);
+
+        $td1 = 0;
+        $td2 = 0;
+        
+        $nb_crit=count($tour->Parameters->Criterias);
+        
+        foreach ($values as $val) {
+            if ($val->CriteriaName != $tour->Parameters->Criterias[0]->Name) {
+                $td1 = $val->Value1;
+                $td2 = $val->Value2;
+                break;
+            }
+        }
+
+
+        if ($td1 > $td2) {
             $style1 = "winner";
             $style2 = "looser";
         } else {
-            if ($match->td1 < $match->td2) {
+            if ($td1 < $td2) {
                 $style2 = "winner";
                 $style1 = "looser";
             } else {
@@ -155,25 +186,25 @@ function match_display($tid, $round_id) {
             }
         }
         print "<tr>";
-        if ($tour->team_tournament) {
-            $t = new team($c1->f_teid);
-            print "<td colspan=\"1\" rowspan=\"2\" class=\"tab_titre\"> $t->name </td>";
+        if ($tour->Parameters->byteam) {
+            $t = new team($c1->Team_idTeam, $link);
+            print "<td  class=\"tab_titre\"> $t->Name </td>";
         }
         print "
-        <td colspan=\"1\" rowspan=\"2\" class=\"$style1\">$c1->team<br>$c1->name - $c1->race </td>";
-        print "<td colspan=\"2\" class=\"$style1\">$match->td1</td>";
-        print "<td colspan=\"2\" class=\"$style2\">$match->td2</td>";
-        print "<td colspan=\"1\" rowspan=\"2\" class=\"$style2\">$c2->team<br>$c2->name - $c2->race</td>";
-        if ($tour->team_tournament) {
-            $team = new team($c2->f_teid);
-            print "<td colspan=\"1\" rowspan=\"2\" class=\"tab_titre\">$team->name</td>";
+        <td   class=\"$style1\">$c1->Team<br>$c1->Name - $c1->Roster </td>";
+        print "<td class=\"$style1\">$td1</td>";
+        print "<td class=\"$style2\">$td2</td>";
+        print "<td class=\"$style2\">$c2->Team<br>$c2->Name - $c2->Roster</td>";
+        if ($tour->Parameters->byteam) {
+            $team = new team($c2->Team_idTeam,$link);
+            print "<td  class=\"tab_titre\">$team->Name</td>";
         }
-        print "</tr>
-    <tr>";
-        print "<td class=\"$style1\">$match->cas1</td>";
-        print "<td class=\"$style2\">$match->cas2</td>";
-        print "<td class=\"$style1\">$match->foul1</td>";
-        print "<td class=\"$style2\">$match->foul2</td>";
+        foreach ($values as $val) {
+            if ($val->CriteriaName != $tour->Parameters->Criterias[0]->Name) {
+                print "<td class=\"$style1\">$val->Value1</td>";
+                print "<td class=\"$style2\">$val->Value2</td>";
+            }
+        }
         print "</tr>";
     }
     print "</tbody>
@@ -362,7 +393,7 @@ function general_display($link, $tid, $rid, $round_max) {
     print "</tr>";
 
 
-    $ranking = new ranking($link, 'INDIVIDUAL', 'GENERAL', $rid,-1,0);
+    $ranking = new ranking($link, 'INDIVIDUAL', 'GENERAL', $rid, -1, 0);
 
     foreach ($ranking->Positions as $pos) {
         $coach = new coach($pos->Coach_idCoach, $link);
@@ -391,67 +422,20 @@ function general_display($link, $tid, $rid, $round_max) {
         print "</tr>";
     }
 
-
-    /*     global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
-
-      //$link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
-      mysql_select_db($db_name, $link)
-      $query = "SELECT idRound FROM " . $db_prefix . "position LEFT JOIN " . $db_prefix . "ranking "
-      . "WHERE Tournament_idTournament=$this->tid ORDER BY dDate";
-      $result = mysql_query($query); */
-
-
-    /* foreach ($list as $element) {
-      if ($counter == 1) {
-      $suffix = "_1";
-      } else {
-      if ($counter == count($list)) {
-      $suffix = "_last";
-      } else {
-      $suffix = "";
-      }
-      }
-
-      if (
-      ($minus == 0) ||
-      (($minus == 1) &&
-      (
-      ($element['Race'] == "Gobelin") ||
-      ($element['Race'] == "Halfling") ||
-      ($element['Race'] == "Ogre")
-      ))
-      ) {
-      print "<tr>";
-      print "<td class = \"tab_pos$suffix\" id=\"" . $counter . "\">" . $counter++. "</td>";
-      print "<td class=\"tab_result$suffix\">" . $element['Coach'] . "</td>";
-      if ($element['Team'] == "") {
-      $element['Team'] = "&nbsp;";
-      }
-      print "<td class=\"tab_result$suffix\">" . $element['Team'] . "</td>";
-
-      print "<td class=\"tab_result$suffix\">" . $element['Race'] . "</td>";
-      print "<td class=\"tab_result$suffix\">" . $element['Value1'] . "</td>";
-      print "<td class=\"tab_result$suffix\">" . $element['Value2'] . "</td>";
-      print "<td class=\"tab_result$suffix\">" . $element['Value3'] . "</td>";
-      print "<td class=\"tab_result$suffix\">" . $element['Value4'] . "</td>";
-      print "<td class=\"tab_result$suffix\">" . $element['Value5'] . "</td>";
-      print "</tr>";
-      }
-      } */
     print "</tbody>
 </table>";
 }
 
-function general_team_display($tid, $rid, $round_max) {
-    $tour = new tournament($tid);
+function general_team_display($link, $tid, $rid, $round_max) {
 
-    $rounds = $tour->getRounds();
+    $tour = new tournament($tid, $link);
+
+    $rounds = $tour->getRounds($link);
     if ($rid == -1) {
-
         foreach ($rounds as $round) {
             $rid = max($rid, $round->rid);
         }
-        $text = "classement final";
+        $text = "Classement final";
     } else {
         $count = 1;
         foreach ($rounds as $round) {
@@ -467,87 +451,81 @@ function general_team_display($tid, $rid, $round_max) {
         }
     }
 
-    $round = new round($rid);
-    $teams = $tour->getTeams();
-
-    global $db_host, $db_name, $db_passwd, $db_prefix, $db_user;
-
-    $link = mysql_connect($db_host, $db_user, $db_passwd) or die("Impossible de se connecter : " . mysql_error());
-    mysql_select_db($db_name, $link);
-
-    $list = array();
-    $sort_list1 = array();
-    $sort_list2 = array();
-    $sort_list3 = array();
-    $sort_list4 = array();
-    $sort_list5 = array();
-
-    $ranking_name1 = $tour->getRankingName($tour->rank1);
-    $ranking_name2 = $tour->getRankingName($tour->rank2);
-    $ranking_name3 = $tour->getRankingName($tour->rank3);
-    $ranking_name4 = $tour->getRankingName($tour->rank4);
-    $ranking_name5 = $tour->getRankingName($tour->rank5);
-
-    foreach ($teams as $team) {
-        $element = array();
-        $element['Name'] = $team->name;
-
-        $element['Value1'] = $tour->getRankingTeamValue($team->teid, $rid, $tour->rank1, $round_max);
-        $element['Value2'] = $tour->getRankingTeamValue($team->teid, $rid, $tour->rank2, $round_max);
-        $element['Value3'] = $tour->getRankingTeamValue($team->teid, $rid, $tour->rank3, $round_max);
-        $element['Value4'] = $tour->getRankingTeamValue($team->teid, $rid, $tour->rank4, $round_max);
-        $element['Value5'] = $tour->getRankingTeamValue($team->teid, $rid, $tour->rank5, $round_max);
-
-        array_push($list, $element);
-        array_push($sort_list1, $element['Value1']);
-        array_push($sort_list2, $element['Value2']);
-        array_push($sort_list3, $element['Value3']);
-        array_push($sort_list4, $element['Value4']);
-        array_push($sort_list5, $element['Value5']);
+    if (($tour->Parameters->team_pairing == 1) && ($tour->Parameters->team_victory_only == 1)) {
+        $ranking_name1 = $tour->getRankingName($tour->Parameters->rank1_team);
+        $ranking_name2 = $tour->getRankingName($tour->Parameters->rank2_team);
+        $ranking_name3 = $tour->getRankingName($tour->Parameters->rank3_team);
+        $ranking_name4 = $tour->getRankingName($tour->Parameters->rank4_team);
+        $ranking_name5 = $tour->getRankingName($tour->Parameters->rank5_team);
+    } else {
+        $ranking_name1 = $tour->getRankingName($tour->Parameters->rank1);
+        $ranking_name2 = $tour->getRankingName($tour->Parameters->rank2);
+        $ranking_name3 = $tour->getRankingName($tour->Parameters->rank3);
+        $ranking_name4 = $tour->getRankingName($tour->Parameters->rank4);
+        $ranking_name5 = $tour->getRankingName($tour->Parameters->rank5);
     }
-
-
-
-    array_multisort($sort_list1, SORT_DESC, $sort_list2, SORT_DESC, $sort_list3, SORT_DESC, $sort_list4, SORT_DESC, $sort_list5, SORT_DESC, $list);
     $counter = 1;
     print "<br><div id=\"titre\">Classement général</div><div id=\"soustitre\">$text</div>";
-    echo "<table
+    $col_count = 0;
+    print "<table
  style=\"border-color: black; width: 100%; text-align: left; margin-left: auto; margin-right: auto;text-align:center;\"
  border=\"0\" cellpadding=\"0\" cellspacing=\"0\">
   <tbody>
     <tr>
       <td class=\"tab_titre\">N°</td>
-      <td class=\"tab_titre\">Clan</td>
-      <td class=\"tab_titre\">" . $ranking_name1 . "</td>
-        <td class=\"tab_titre\">" . $ranking_name2 . "</td>
-        <td class=\"tab_titre\">" . $ranking_name3 . "</td>
-        <td class=\"tab_titre\">" . $ranking_name4 . "</td>
-        <td class=\"tab_titre\">" . $ranking_name5 . "</td>
-    </tr>";
-    foreach ($list as $element) {
-        if ($counter == 1) {
-            $suffix = "_1";
-        } else {
-            if ($counter == count($list)) {
-                $suffix = "_last";
-            } else {
-                $suffix = "";
-            }
+      <td class=\"tab_titre\">Equipe</td>";
+    if ($ranking_name1 != '') {
+        print "<td class=\"tab_titre\">" . $ranking_name1 . "</td>";
+        $col_count = $col_count + 1;
+    }
+    if ($ranking_name2 != '') {
+        print "<td class=\"tab_titre\">" . $ranking_name2 . "</td>";
+        $col_count = $col_count + 1;
+    }
+    if ($ranking_name3 != '') {
+        print "<td class=\"tab_titre\">" . $ranking_name3 . "</td>";
+        $col_count = $col_count + 1;
+    }
+    if ($ranking_name4 != '') {
+        print "<td class=\"tab_titre\">" . $ranking_name4 . "</td>";
+        $col_count = $col_count + 1;
+    }
+    if ($ranking_name5 != '') {
+        print "<td class=\"tab_titre\">" . $ranking_name5 . "</td>";
+        $col_count = $col_count + 1;
+    }
+    print "</tr>";
+
+
+    $ranking = new ranking($link, 'TEAM', 'GENERAL', $rid, -1, 0);
+
+    foreach ($ranking->Positions as $pos) {
+        $team = new team($pos->Team_idTeam, $link);
+        print "<tr><td class=\"tab_pos\">" . $pos->Position . "</td>";
+        print "<td class=\"tab_pos\">" . $pos->Name . "</td>";
+        if ($ranking_name1 != '') {
+            print "<td class=\"tab_pos\">" . $pos->Value1 . "</td>";
         }
-        print "<td  class=\"tab_pos$suffix\" id=\"" . $counter . "\">" . $counter++ . "</td>";
-        print "<td class=\"tab_result$suffix\">" . $element['Name'] . "</td>";
-        print "<td class=\"tab_result$suffix\">" . $element['Value1'] . "</td>";
-        print "<td class=\"tab_result$suffix\">" . $element['Value2'] . "</td>";
-        print "<td class=\"tab_result$suffix\">" . $element['Value3'] . "</td>";
-        print "<td class=\"tab_result$suffix\">" . $element['Value4'] . "</td>";
-        print "<td class=\"tab_result$suffix\">" . $element['Value5'] . "</td>";
+        if ($ranking_name2 != '') {
+            print "<td class=\"tab_pos\">" . $pos->Value2 . "</td>";
+        }
+        if ($ranking_name3 != '') {
+            print "<td class=\"tab_pos\">" . $pos->Value3 . "</td>";
+        }
+        if ($ranking_name4 != '') {
+            print "<td class=\"tab_pos\">" . $pos->Value4 . "</td>";
+        }
+        if ($ranking_name5 != '') {
+            print "<td class=\"tab_pos\">" . $pos->Value5 . "</td>";
+        }
         print "</tr>";
     }
+
     print "</tbody>
 </table>";
 }
 
-function rank_display($link, $tid, $rid, $rank_type, $round_max,$posneg) {
+function rank_display($link, $tid, $rid, $rank_type, $round_max, $posneg) {
     $tour = new tournament($tid, $link);
     $text = "";
     $rounds = $tour->getRounds($link);
@@ -569,17 +547,14 @@ function rank_display($link, $tid, $rid, $rank_type, $round_max,$posneg) {
         }
     }
 
-    $round = new round($link,$rid);
+    $round = new round($link, $rid);
     $criteria = criteria::fromID($rank_type, $link);
 
-if ($posneg)
-{
-    print "<br><div id=\"titre\">Classement par critère +</div><div id=\"soustitre\">$text</div>";
-}
-else
-{
-    print "<br><div id=\"titre\">Classement par critère -</div><div id=\"soustitre\">$text</div>";
-}
+    if ($posneg) {
+        print "<br><div id=\"titre\">Classement par critère +</div><div id=\"soustitre\">$text</div>";
+    } else {
+        print "<br><div id=\"titre\">Classement par critère -</div><div id=\"soustitre\">$text</div>";
+    }
 
     print "<table
  style=\"border-color: black; width: 100%; text-align: left; margin-left: auto; margin-right: auto;text-align:center;\"
@@ -596,7 +571,7 @@ else
     print "</tr>";
 
 
-    $ranking = new ranking($link, 'INDIVIDUAL', 'CRITERIA', $rid,$rank_type,$posneg);
+    $ranking = new ranking($link, 'INDIVIDUAL', 'CRITERIA', $rid, $rank_type, $posneg);
 
     foreach ($ranking->Positions as $pos) {
         $coach = new coach($pos->Coach_idCoach, $link);
@@ -617,10 +592,10 @@ else
 </table>";
 }
 
-function rank_team_display($tid, $rid, $rank_type, $round_max) {
-    $tour = new tournament($tid);
+function rank_team_display($link, $tid, $rid, $rank_type, $round_max, $posneg) {
+    $tour = new tournament($tid, $link);
     $text = "";
-    $rounds = $tour->getRounds();
+    $rounds = $tour->getRounds($link);
 
     if ($rid == -1) {
 
@@ -638,108 +613,36 @@ function rank_team_display($tid, $rid, $rank_type, $round_max) {
             $count++;
         }
     }
-    $round = new round($rid);
 
-    $teams = $tour->getTeams();
+    $round = new round($link, $rid);
+    $criteria = criteria::fromID($rank_type, $link);
 
-    $list = array();
-    $sort_list = array();
-    $sort_list1 = array();
-    $sort_list2 = array();
-    $sort_list3 = array();
-    $sort_list4 = array();
-    $sort_list5 = array();
-
-    foreach ($teams as $team) {
-
-        $element = array();
-        $element['Name'] = $team->name;
-        $value = 0;
-        $value1 = 0;
-        $value2 = 0;
-        $value3 = 0;
-        $value4 = 0;
-        $value5 = 0;
-
-        $coachs = $team->getCoachs();
-        foreach ($coachs as $coach) {
-            $value+= $tour->getValueByCoach($coach->cid, $rid, $rank_type, $round_max);
-            $value1+=$tour->getRankingValue($coach->cid, $rid, $tour->rank1, $round_max);
-            $value2+=$tour->getRankingValue($coach->cid, $rid, $tour->rank2, $round_max);
-            $value3+=$tour->getRankingValue($coach->cid, $rid, $tour->rank3, $round_max);
-            $value4+=$tour->getRankingValue($coach->cid, $rid, $tour->rank4, $round_max);
-            $value5+=$tour->getRankingValue($coach->cid, $rid, $tour->rank5, $round_max);
-        }
-
-        $element['Value'] = $value;
-        $element['Value1'] = $value1;
-        $element['Value2'] = $value2;
-        $element['Value3'] = $value3;
-        $element['Value4'] = $value4;
-        $element['Value5'] = $value5;
-
-        array_push($list, $element);
-
-        array_push($sort_list, $element['Value']);
-        array_push($sort_list1, $element['Value1']);
-        array_push($sort_list2, $element['Value2']);
-        array_push($sort_list3, $element['Value3']);
-        array_push($sort_list4, $element['Value4']);
-        array_push($sort_list5, $element['Value5']);
+    if ($posneg) {
+        print "<br><div id=\"titre\">Classement par critère +</div><div id=\"soustitre\">$text</div>";
+    } else {
+        print "<br><div id=\"titre\">Classement par critère -</div><div id=\"soustitre\">$text</div>";
     }
 
-    switch ($rank_type) {
-        case tournament::C_TD_POS:
-            $ranking_name = "Touchdowns marqués";
-            break;
-        case tournament::C_TD_NEG:
-            $ranking_name = "Touchdowns encaissés";
-            break;
-        case tournament::C_CAS_POS:
-            $ranking_name = "Sorties réalisées";
-            break;
-        case tournament::C_CAS_NEG:
-            $ranking_name = "Sorties subies";
-            break;
-        case tournament::C_FOUL_POS:
-            $ranking_name = "Agrressions réussies";
-            break;
-        case tournament::C_FOUL_NEG:
-            $ranking_name = "Agressions subies";
-            break;
-    }
-
-//array_multisort($sort_list, SORT_DESC,$list);
-    array_multisort($sort_list, SORT_DESC, $sort_list1, SORT_DESC, $sort_list2, SORT_DESC, $sort_list3, SORT_DESC, $sort_list4, SORT_DESC, $sort_list5, SORT_DESC, $list);
-    $counter = 1;
-    print "<br><div id=\"titre\">$ranking_name</div><div id=\"soustitre\">$text</div>";
-    echo "<table
+    print "<table
  style=\"border-color: black; width: 100%; text-align: left; margin-left: auto; margin-right: auto;text-align:center;\"
  border=\"0\" cellpadding=\"0\" cellspacing=\"0\">
   <tbody>
     <tr>
-      <td class=\"tab_titre\">N°</td>
-      <td class=\"tab_titre\">Clan</td>
-      <td class=\"tab_titre\">" . $ranking_name . "</td>
-    </tr>";
-    foreach ($list as $element) {
-        if ($counter == 1) {
-            $suffix = "_1";
-        } else {
-            if ($counter == count($list)) {
-                $suffix = "_last";
-            } else {
-                $suffix = "";
-            }
-        }
-        print "<td class=\"tab_pos$suffix\">" . $counter++ . "</td>";
-        print "<td class=\"tab_result$suffix\">" . $element['Name'] . "</td>";
-        if ($element['Team'] == "") {
-            $element['Team'] = "&nbsp;";
-        }
-        print "<td class=\"tab_result$suffix\">" . $element['Value'] . "</td>";
+      <td class=\"tab_titre\">N°</td>";
+    print "<td class=\"tab_titre\">Equipe</td>";
+    print "<td class=\"tab_titre\">" . $criteria->Name . "</td>";
+    print "</tr>";
+
+
+    $ranking = new ranking($link, 'TEAM', 'CRITERIA', $rid, $rank_type, $posneg);
+
+    foreach ($ranking->Positions as $pos) {
+        print "<tr><td class=\"tab_pos\">" . $pos->Position . "</td>";
+        print "<td class=\"tab_pos\">" . $pos->Name . "</td>";
+        print "<td class=\"tab_pos\">" . $pos->Value1 . "</td>";
         print "</tr>";
     }
+
     print "</tbody>
 </table>";
 }
@@ -1002,12 +905,25 @@ function tournament_html($tour_id) {
     }
 
     if (isset($_GET['rank'])) {
-        if ($_GET['rank'] == 'general') {
-            general_display($link, $tour_id, $r, $round_max);
+        if ($_GET['rank'] == 'matchs') {
+            match_display($link, $tour_id, $r);
         } else {
-            if (isset($_GET['posneg']))
-            {
-                rank_display($link, $tour_id, $r, $_GET['rank'], $round_max,$_GET['posneg']);
+            if ($_GET['rank'] == 'general') {
+                general_display($link, $tour_id, $r, $round_max);
+            } else {
+                if (isset($_GET['posneg'])) {
+                    rank_display($link, $tour_id, $r, $_GET['rank'], $round_max, $_GET['posneg']);
+                }
+            }
+        }
+    }
+
+    if (isset($_GET['rank_team'])) {
+        if ($_GET['rank_team'] == 'general') {
+            general_team_display($link, $tour_id, $r, $round_max);
+        } else {
+            if (isset($_GET['posneg'])) {
+                rank_team_display($link, $tour_id, $r, $_GET['rank_team'], $round_max, $_GET['posneg']);
             }
         }
     }

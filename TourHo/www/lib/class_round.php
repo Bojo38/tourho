@@ -1,8 +1,4 @@
 <?php
-/* 
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 
 /**
  * Description of class_round
@@ -51,19 +47,19 @@ class round {
         return $id;
     }
 
-     public function getMatchs()
+     public function getCoachMatchs($link)
     {
        $list=array();
        global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
 
-       $link = mysql_connect($db_host, $db_user, $db_passwd)  or die("Impossible de se connecter : " . mysql_error());
        mysql_select_db($db_name,$link);
-       $query="SELECT mid FROM ".$db_prefix."match WHERE f_rid=$this->rid";
+
+       $query="SELECT idCoachMatch FROM ".$db_prefix."coachmatch WHERE Round_idRound=$this->idRound";
        $result=mysql_query($query);
-       mysql_close($link);
+
        $index=0;
        while ($r = mysql_fetch_row($result)) {
-           $list[$index++]=new match($r[0]);
+           $list[$index++]=new coachmatch($r[0],$link);
         }
         
         return $list;
