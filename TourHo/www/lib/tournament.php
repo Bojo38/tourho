@@ -49,62 +49,29 @@ function generate_tour_menu($tour_id, $link) {
             if ($tour->Parameters->team_pairing == 1) {
                 print "<li><a href=\"index.php?tournament=$tour_id&amp;rank_team=matchs&amp;round=$round->rid\">Matchs d'équipes</a></li>";
             }
-            print "<li><span class=\"dir\">Classements sur la ronde (Equipe)</span>
+            print "<li><span class=\"dir\">Classements à la ronde (Equipe)</span>
                         <ul>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=general&amp;round=$round->rid\">Classement General</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=td_pos&amp;round=$round->rid\">Touchdowns marqués</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=td_neg&amp;round=$round->rid\">Touchdowns encaissés</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=cas_pos&amp;round=$round->rid\">Sorties réalisées</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=cas_neg&amp;round=$round->rid\">Sorties subies</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=foul_pos&amp;round=$round->rid\">Agressions réussies</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=foul_neg&amp;round=$round->rid\">Agressions subies</a></li>
-                        </ul>
-                    </li>
-                    <li><span class=\"dir\">Classements à la ronde (Equipe)</span>
-                        <ul>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=general&amp;round=$round->rid&amp;total=1\">Classement General</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=td_pos&amp;round=$round->rid&amp;total=1\">Touchdowns marqués</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=td_neg&amp;round=$round->rid&amp;total=1\">Touchdowns encaissés</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=cas_pos&amp;round=$round->rid&amp;total=1\">Sorties réalisées</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=cas_neg&amp;round=$round->rid&amp;total=1\">Sorties subies</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=foul_pos&amp;round=$round->rid&amp;total=1\">Agressions réussies</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=foul_neg&amp;round=$round->rid&amp;total=1\">Agressions subies</a></li>
-                        </ul>
-                    </li>
-                ";
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank_team=general&amp;round=$round->rid&amp;total=1\">Classement General</a></li>";
+            foreach ($tour->Parameters->Criterias as $c) {
+                print "<li><a href=\"index.php?tournament=$tour_id&amp;rank_team=$c->idCriteria&amp;total=1&amp;posneg=1\">$c->Name +</a></li>";
+                print "<li><a href=\"index.php?tournament=$tour_id&amp;rank_team=$c->idCriteria&amp;total=1&amp;posneg=0\">$c->Name -</a></li>";
+            }
+            print "</ul>
+            </li>
+            ";
         }
         if ($tour->Parameters->byteam) {
-            print "<li><span class=\"dir\">Classements sur la ronde (Individuel)</span>";
-        } else {
-            print "<li><span class=\"dir\">Classements sur la ronde</span>";
-        }
-
-        print "        <ul>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=general&amp;round=$round->rid\">Classement General</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=td_pos&amp;round=$round->rid\">Touchdowns marqués</a></li>)
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=td_neg&amp;round=$round->rid\">Touchdowns encaissés</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_pos&amp;round=$round->rid\">Sorties réalisées</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_neg&amp;round=$round->rid\">Sorties subies</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_pos&amp;round=$round->rid\">Agressions réussies</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_neg&amp;round=$round->rid\">Agressions subies</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=minus&amp;round=$round->rid\">Minus</a></li>
-                        </ul>
-                    </li>";
-        if ($tour->Parameters->byteam) {
-            print "<li><span class=\"dir\">Classements à la ronde (Individuel)</span>";
+            print "<li><span class = \"dir\">Classements à la ronde (Individuel)</span>";
         } else {
             print "<li><span class=\"dir\">Classements à la ronde</span>";
         }
         print "<ul>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=general&amp;round=$round->rid&amp;total=1\">Classement General</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=td_pos&amp;round=$round->rid&amp;total=1\">Touchdowns marqués</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=td_neg&amp;round=$round->rid&amp;total=1\">Touchdowns encaissés</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_pos&amp;round=$round->rid&amp;total=1\">Sorties réalisées</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=cas_neg&amp;round=$round->rid&amp;total=1\">Sorties subies</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_pos&amp;round=$round->rid&amp;total=1\">Agressions réussies</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=foul_neg&amp;round=$round->rid&amp;total=1\">Agressions subies</a></li>
-                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=minus&amp;round=$round->rid&amp;total=1\">Minus</a></li>
-                        </ul>
+                            <li><a href=\"index.php?tournament=$tour_id&amp;rank=general&amp;round=$round->rid&amp;total=1\">Classement General</a></li>";
+                             foreach ($tour->Parameters->Criterias as $c) {
+                print "<li><a href=\"index.php?tournament=$tour_id&amp;rank=$c->idCriteria&amp;total=1&amp;posneg=1\">$c->Name +</a></li>";
+                print "<li><a href=\"index.php?tournament=$tour_id&amp;rank=$c->idCriteria&amp;total=1&amp;posneg=0\">$c->Name -</a></li>";
+            }
+                        print "</ul>
                     </li>
                 </ul></li>";
         $roundindex++;
@@ -144,7 +111,7 @@ function match_display($link, $tid, $round_id) {
     if ($tour->Parameters->byteam) {
         print "<td  class=\"tab_titre\" >Equipe 2</td>";
     }
-    
+
     $i = 0;
     foreach ($tour->Parameters->Criterias as $crit) {
         if ($i != 0) {
@@ -161,9 +128,9 @@ function match_display($link, $tid, $round_id) {
 
         $td1 = 0;
         $td2 = 0;
-        
-        $nb_crit=count($tour->Parameters->Criterias);
-        
+
+        $nb_crit = count($tour->Parameters->Criterias);
+
         foreach ($values as $val) {
             if ($val->CriteriaName != $tour->Parameters->Criterias[0]->Name) {
                 $td1 = $val->Value1;
@@ -196,7 +163,7 @@ function match_display($link, $tid, $round_id) {
         print "<td class=\"$style2\">$td2</td>";
         print "<td class=\"$style2\">$c2->Team<br>$c2->Name - $c2->Roster</td>";
         if ($tour->Parameters->byteam) {
-            $team = new team($c2->Team_idTeam,$link);
+            $team = new team($c2->Team_idTeam, $link);
             print "<td  class=\"tab_titre\">$team->Name</td>";
         }
         foreach ($values as $val) {
@@ -211,101 +178,54 @@ function match_display($link, $tid, $round_id) {
 </table>";
 }
 
-function match_team_display($tid, $round_id) {
-    $tour = new tournament($tid);
-    $round = new round($round_id);
-    $matchs = $round->getMatchs();
-    $teams = $tour->getTeams();
+function match_team_display($link, $tid, $round_id) {
 
-    print "<br><div id=\"titre\">Ronde $round->number</div>";
+    $tour = new tournament($tid, $link);
+
+    $rounds = $tour->getRounds($link);
+
+    $index = 0;
+
+    while (($rounds[$index]->idRound != $round_id) && ($index < count($rounds))) {
+        $index = $index + 1;
+    }
+    if ($index == count($rounds)) {
+        exit("Ronde non trouvée");
+    }
+    $matchs = $rounds[$index]->getTeamMatchs($link);
+    $index = $index + 1;
+
+    print "<br><div id=\"titre\">Ronde " . $index . "</div>";
     echo "<table
  style=\"border-color: black; width: 100%; text-align: left; margin-left: auto; margin-right: auto;text-align:center;\"
  border=\"0\" cellpadding=\"0\" cellspacing=\"0\">
   <tbody>
     <tr>";
-    print "<td class=\"tab_titre\">Clan 1</td>";
+    print "<td  class=\"tab_titre\">Equipe 1</td>";
+    print "<td class=\"tab_titre\" >V1</td>";
+    print "<td class=\"tab_titre\" >N</td>";
+    print "<td class=\"tab_titre\" >V2</td>";
+    print "<td  class=\"tab_titre\" >Equipe 2</td>";
 
-    print " <td class=\"tab_titre\">V1</td>
-      <td class=\"tab_titre\">N</td>
-      <td  class=\"tab_titre\">V 2</td>";
-    print "<td  class=\"tab_titre\">Clan 2</td></tr>";
-
-    $displays = array();
-
-    for ($i = 0; $i < count($teams) / 2; $i++) {
-        $team1 = $teams[2 * $i];
-        $team2 = $team1;
-
-        $team_matchs = array();
-
-        foreach ($matchs as $match) {
-            $c1 = new coach($match->f_cid1);
-            $c2 = new coach($match->f_cid2);
-            $t1 = new team($c1->f_teid);
-            $t2 = new team($c2->f_teid);
-
-            if ($t1->teid == $team1->teid) {
-                $team2 = $t2;
-                array_push($team_matchs);
-            }
-            if ($t2->teid == $team1->teid) {
-                $team2 = $t1;
-                array_push($team_matchs, $match);
-            }
-        }
-
-        $nbVictory = 0;
-        $nbDraw = 0;
-        $nbLost = 0;
-        foreach ($team_matchs as $team_match) {
-
-            $c1 = new coach($team_match->f_cid1);
-            $c2 = new coach($team_match->f_cid2);
-            $t1 = new team($c1->f_teid);
-            $t2 = new team($c2->f_teid);
-
-            if ($t1->teid == $team1->teid) {
-                if ($team_match->td1 > $team_match->td2) {
-                    $nbVictory++;
-                } else {
-                    if ($team_match->td1 < $team_match->td2) {
-                        $nbLost++;
-                    } else {
-                        $nbDraw++;
-                    }
-                }
-            }
-            if ($t2->teid == $team1->teid) {
-                if ($team_match->td1 < $team_match->td2) {
-                    $nbVictory++;
-                } else {
-                    if ($team_match->td1 > $team_match->td2) {
-                        $nbLost++;
-                    } else {
-                        $nbDraw++;
-                    }
-                }
-            }
-        }
-        $display = array();
-
-        $display['Team1'] = $team1->name;
-        $display['Team2'] = $team2->name;
-        $display['V1'] = $nbVictory;
-        $display['V2'] = $nbLost;
-        $display['N'] = $nbDraw;
-
-        array_push($displays, $display);
+    $i = 0;
+    foreach ($tour->Parameters->Criterias as $crit) {
+        print "<td class=\"tab_titre\"colspan=\"2\">$crit->Name</td>";
+        $i++;
     }
+    print "</tr>";
 
-    foreach ($displays as $display) {
+    foreach ($matchs as $match) {
+        $t1 = new team($match->Team1_idTeam, $link);
+        $t2 = new team($match->Team2_idTeam, $link);
+        $values = $match->Values;
 
+        $nb_crit = count($tour->Parameters->Criterias);
 
-        if ($display['V1'] > $display['V2']) {
+        if ($match->V1 > $match->V2) {
             $style1 = "winner";
             $style2 = "looser";
         } else {
-            if ($display['V1'] < $display['V2']) {
+            if ($match->V1 < $match->V2) {
                 $style2 = "winner";
                 $style1 = "looser";
             } else {
@@ -313,13 +233,18 @@ function match_team_display($tid, $round_id) {
                 $style1 = "draw";
             }
         }
-
         print "<tr>";
-        print "<td class=\"$style1\"> " . $display['Team1'] . "</td>";
-        print "<td class=\"$style1\"> " . $display['V1'] . "</td>";
-        print "<td class=\"draw\"> " . $display['N'] . "</td>";
-        print "<td class=\"$style2\"> " . $display['V2'] . "</td>";
-        print "<td class=\"$style2\"> " . $display['Team2'] . "</td>";
+
+        print "
+        <td   class=\"$style1\">$t1->Name</td>";
+        print "<td class=\"$style1\"> $match->V1</td>";
+        print "<td class=\"$style1\"> $match->N</td>";
+        print "<td class=\"$style2\"> $match->V2</td>";
+        print "<td class=\"$style2\">$t2->Name</td>";
+        foreach ($values as $val) {
+            print "<td class=\"$style1\">$val->Value1</td>";
+            print "<td class=\"$style2\">$val->Value2</td>";
+        }
         print "</tr>";
     }
     print "</tbody>
@@ -919,11 +844,15 @@ function tournament_html($tour_id) {
     }
 
     if (isset($_GET['rank_team'])) {
-        if ($_GET['rank_team'] == 'general') {
-            general_team_display($link, $tour_id, $r, $round_max);
+        if ($_GET['rank_team'] == 'matchs') {
+            match_team_display($link, $tour_id, $r);
         } else {
-            if (isset($_GET['posneg'])) {
-                rank_team_display($link, $tour_id, $r, $_GET['rank_team'], $round_max, $_GET['posneg']);
+            if ($_GET['rank_team'] == 'general') {
+                general_team_display($link, $tour_id, $r, $round_max);
+            } else {
+                if (isset($_GET['posneg'])) {
+                    rank_team_display($link, $tour_id, $r, $_GET['rank_team'], $round_max, $_GET['posneg']);
+                }
             }
         }
     }

@@ -64,5 +64,24 @@ class round {
         
         return $list;
     }
+    
+    
+     public function getTeamMatchs($link)
+    {
+       $list=array();
+       global $db_host,$db_name,$db_passwd,$db_prefix,$db_user;
+
+       mysql_select_db($db_name,$link);
+
+       $query="SELECT idTeamMatch FROM ".$db_prefix."teammatch WHERE Round_idRound=$this->idRound";
+       $result=mysql_query($query);
+
+       $index=0;
+       while ($r = mysql_fetch_row($result)) {
+           $list[$index++]=new teammatch($r[0],$link);
+        }
+        
+        return $list;
+    }
 }
 ?>

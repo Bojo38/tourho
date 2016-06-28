@@ -9,6 +9,7 @@ require_once 'lib/class_coach.php';
 require_once 'lib/class_round.php';
 require_once 'lib/class_match.php';
 require_once 'lib/class_coachmatch.php';
+require_once 'lib/class_teammatch.php';
 require_once 'lib/class_coachvalue.php';
 require_once 'lib/class_team.php';
 require_once 'lib/class_group.php';
